@@ -16,7 +16,7 @@ entity Cpu is
          Stop    : in  std_logic;
          Halt    : out std_logic;
          Li      : out std_logic;                       -- 命令フェッチ
-         Flags   : out std_logic_vector (2 downto 0);   -- CSZ
+         Flags   : out std_logic_vector (3 downto 0);   -- CSZE
          -- RAM
          Addr    : out std_logic_vector (7 downto 0);
          Din     : in  std_logic_vector (7 downto 0);
@@ -38,7 +38,7 @@ architecture Behavioral of Cpu is
            OP    : in  STD_LOGIC_vector (3 downto 0);
            Rd    : in  STD_LOGIC_vector (1 downto 0);
            Rx    : in  STD_LOGIC_vector (1 downto 0);
-           Flag  : in  STD_LOGIC_vector (2 downto 0);   -- CSZ
+           Flag  : in  STD_LOGIC_vector (3 downto 0);   -- CSZE
            Stop  : in  STD_LOGIC;
            -- CPU内部の制御用に出力
            IrLd  : out  STD_LOGIC;
@@ -52,7 +52,9 @@ architecture Behavioral of Cpu is
            PcRet : out  STD_LOGIC;
            Ma    : out  STD_LOGIC_vector (1 downto 0);
            Md    : out  STD_LOGIC;
+           Io    : out  STD_LOGIC;
            -- CPU外部へ出力
+           Err   : out  STD_LOGIC;
            We    : out  STD_LOGIC;
            Halt  : out  STD_LOGIC
            );
@@ -86,6 +88,7 @@ architecture Behavioral of Cpu is
   constant OP_SFT : std_logic_vector(3 downto 0) := "1001"; -- 9
   constant OP_JMP : std_logic_vector(3 downto 0) := "1010"; -- A
   constant OP_CALL: std_logic_vector(3 downto 0) := "1011"; -- B
+  constant OP_IO  : std_logic_vector(3 downto 0) := "1100"; -- C
   constant OP_STCK: std_logic_vector(3 downto 0) := "1101"; -- D
   constant OP_RET : std_logic_vector(3 downto 0) := "1110"; -- E
   constant OP_HALT: std_logic_vector(3 downto 0) := "1111"; -- F
@@ -114,6 +117,8 @@ architecture Behavioral of Cpu is
 
   signal Ma    : std_logic_vector(1 downto 0); -- MA(PC=00,EA=01,SP=10)
   signal Md    : std_logic;                    -- MD(PC=0,GR=1)
+
+  signal Io    : std_logic;                    --IO
 
 begin
 -- コンソールへの接続
