@@ -128,7 +128,7 @@ begin
 -- 制御部
   seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FLG, Stop,
                             IrLd, DrLd, FlgLd, GrLd, SpM1, SpP1, PcP1,
-                            PcJmp, PcRet, Ma, Md, We, Halt);
+                            PcJmp, PcRet, Ma, Md, Io, Err, We, Halt);
 
 -- BUS
   Addr <= PC when Ma="00" else
