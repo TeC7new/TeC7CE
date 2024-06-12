@@ -16,7 +16,7 @@ entity Sequencer is
          OP    : in  STD_LOGIC_VECTOR (3 downto 0);
          Rd    : in  STD_LOGIC_VECTOR (1 downto 0);
          Rx    : in  STD_LOGIC_VECTOR (1 downto 0);
-         Flag  : in  STD_LOGIC_VECTOR (2 downto 0); -- CSZ
+         Flag  : in  STD_LOGIC_VECTOR (3 downto 0); -- CSZE
          Stop  : in  STD_LOGIC;
          -- CPU内部の制御用に出力
          IrLd  : out  STD_LOGIC;
@@ -30,7 +30,9 @@ entity Sequencer is
          PcRet : out  STD_LOGIC;
          Ma    : out  STD_LOGIC_VECTOR (1 downto 0);
          Md    : out  STD_LOGIC;
+         IO    : out  STD_LOGIC;
          -- CPU外部へ出力
+         Err   : out  STD_LOGIC;
          We    : out  STD_LOGIC;
          Halt  : out  STD_LOGIC
          );
