@@ -68,7 +68,7 @@ architecture Behavioral of Cpu is
 
 -- PSW
   signal PC  : std_logic_vector(7 downto 0);
-  signal FLG : std_logic_vector(2 downto 0);            -- CSZ
+  signal FLG : std_logic_vector(3 downto 0);            -- CSZE
 
 -- IR
   signal OP  : std_logic_vector(3 downto 0);
@@ -246,3 +246,4 @@ begin
              PC;
 
 end Behavioral;
+
