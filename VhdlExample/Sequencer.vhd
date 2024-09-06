@@ -22,6 +22,8 @@ entity Sequencer is
          IrLd  : out  STD_LOGIC;
          DrLd  : out  STD_LOGIC;
          FlgLd : out  STD_LOGIC;
+         FlgOn : out  STD_LOGIC;
+         FlgOff: out  STD_LOGIC;
          GrLd  : out  STD_LOGIC;
          SpM1  : out  STD_LOGIC;
          SpP1  : out  STD_LOGIC;
