@@ -38,12 +38,15 @@ architecture Behavioral of Cpu is
            OP    : in  STD_LOGIC_vector (3 downto 0);
            Rd    : in  STD_LOGIC_vector (1 downto 0);
            Rx    : in  STD_LOGIC_vector (1 downto 0);
-           Flag  : in  STD_LOGIC_vector (3 downto 0);   -- CSZE
+           Flag  : in  STD_LOGIC_vector (3 downto 0);   -- ECSZ
            Stop  : in  STD_LOGIC;
            -- CPU内部の制御用に出力
            IrLd  : out  STD_LOGIC;
            DrLd  : out  STD_LOGIC;
-           FlgLd : out  STD_LOGIC;
+           FlgLdA: out  STD_LOGIC;
+           FlgLdM: out  STD_LOGIC;
+           FlgOn : out  STD_LOGIC;
+           FlgOff: out  STD_LOGIC;   
            GrLd  : out  STD_LOGIC;
            SpM1  : out  STD_LOGIC;
            SpP1  : out  STD_LOGIC;
@@ -51,8 +54,9 @@ architecture Behavioral of Cpu is
            PcJmp : out  STD_LOGIC;
            PcRet : out  STD_LOGIC;
            Ma    : out  STD_LOGIC_vector (1 downto 0);
-           Md    : out  STD_LOGIC;
-           Io    : out  STD_LOGIC;
+           Md    : out  STD_LOGIC_vector (1 downto 0);
+           Ir    : out  STD_LOGIC;
+           Mr    : out  STD_LOGIC;
            -- CPU外部へ出力
            Err   : out  STD_LOGIC;
            We    : out  STD_LOGIC;
@@ -116,7 +120,7 @@ architecture Behavioral of Cpu is
   signal PcRet : std_logic;                    -- PC:RET
 
   signal Ma    : std_logic_vector(1 downto 0); -- MA(PC=00,EA=01,SP=10)
-  signal Md    : std_logic;                    -- MD(PC=0,GR=1)
+  signal Md    : std_logic_vector(1 downto 0); -- MD(PC=0,FLAG=,GR=1)
 
   signal Io    : std_logic;                    --IO
 
@@ -127,8 +131,8 @@ begin
 
 -- 制御部
   seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FLG, Stop,
-                            IrLd, DrLd, FlgLd, GrLd, SpM1, SpP1, PcP1,
-                            PcJmp, PcRet, Ma, Md, Io, Err, We, Halt);
+                            IrLd, DrLd, FlgLdA, FlgLdM, GrLd, SpM1, SpP1, PcP1,
+                            PcJmp, PcRet, Ma, Md, Ir, Mr, Err, We, Halt);
 
 -- BUS
   Addr <= PC when Ma="00" else
