@@ -21,7 +21,8 @@ entity Sequencer is
          -- CPU内部の制御用に出力
          IrLd  : out  STD_LOGIC;
          DrLd  : out  STD_LOGIC;
-         FlgLd : out  STD_LOGIC;
+         FlgLdA: out  STD_LOGIC;
+         FlgLdM: out  STD_LOGIC;
          FlgOn : out  STD_LOGIC;
          FlgOff: out  STD_LOGIC;
          GrLd  : out  STD_LOGIC;
@@ -31,9 +32,10 @@ entity Sequencer is
          PcJmp : out  STD_LOGIC;
          PcRet : out  STD_LOGIC;
          Ma    : out  STD_LOGIC_VECTOR (1 downto 0);
-         Md    : out  STD_LOGIC;
-         IO    : out  STD_LOGIC;
+         Md    : out  STD_LOGIC_VECTOR (1 downto 0);
          -- CPU外部へ出力
+         IR    : out  STD_LOGIC;
+         MR    : out  STD_LOGIC;
          Err   : out  STD_LOGIC;
          We    : out  STD_LOGIC;
          Halt  : out  STD_LOGIC
