@@ -94,12 +94,12 @@ begin
   
   NxtSt <= STAT00 when (State{0}='1' and Stop='1') or    -- Stop
                        State{3}='1' or State{4}='1' or   -- LD/.../XOR/SHxx,ST
-                       State{5}='1' or State{7}='1' or   -- JMP,CALL
-                       State{8}='1' or State{10}='1' or  -- PUSH,POP
-                       State{11}='1' or State{13}='1' or -- RET,HALT
-                       State{15}='1' or State{16}='1' or
-                       State{18}='1' or State{19}='1' or
-                       State{20}='1' else
+                       State{5}='1' or State{7}='1' or   -- JMP,IN
+                       State{8}='1' or State{10}='1' or  -- OUT,CALL
+                       State{11}='1' or State{13}='1' or -- EI/DI,PUSH
+                       State{15}='1' or State{16}='1' or -- POP,RET
+                       State{18}='1' or State{19}='1' or -- RETI,HALT
+                       State{20}='1' else                -- ERROR
            STAT01 when State{0}='1' and Stop='0'  else   -- Fetch
            STAT02 when DecSt(1)='1' and Type1='1' else   -- LD/ADD/.../XOR
            "0011" when (DecSt(1)='1' and OP="1001") or   -- SHIFT
