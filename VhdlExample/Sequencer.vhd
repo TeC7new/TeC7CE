@@ -16,10 +16,13 @@ entity Sequencer is
          OP    : in  STD_LOGIC_VECTOR (3 downto 0);
          Rd    : in  STD_LOGIC_VECTOR (1 downto 0);
          Rx    : in  STD_LOGIC_VECTOR (1 downto 0);
-         Flag  : in  STD_LOGIC_VECTOR (3 downto 0); -- CSZE
+         FlagE : in  STD_LOGIC;
+         FlagC : in  STD_LOGIC;
+         FlagS : in  STD_LOGIC;
+         FlagZ : in  STD_LOGIC;
          Stop  : in  STD_LOGIC;
          -- CPU内部の制御用に出力
-         IrLd  : out  STD_LOGIC;
+         LiLd  : out  STD_LOGIC;
          DrLd  : out  STD_LOGIC;
          FlgLdA: out  STD_LOGIC;
          FlgLdM: out  STD_LOGIC;
@@ -43,47 +46,62 @@ entity Sequencer is
 end Sequencer;
 
 architecture Behavioral of Sequencer is
-  signal Stat  : STD_LOGIC_VECTOR(3  downto 0); -- State
-  signal NxtSt : STD_LOGIC_VECTOR(3  downto 0); -- Next State
-  signal DecSt : STD_LOGIC_VECTOR(13 downto 0); -- Decoded State
-  signal Type1 : STD_LOGIC;                     -- LD/ADD/SUB/CMP/AND/OR/XOR
+
+subtype stat is STD_LOGIC_VECTOR(25 downto 0);
+constant STAT00 : stat := "00000000000000000000000001";
+constant STAT01 : stat := "00000000000000000000000010";
+constant STAT02 : stat := "00000000000000000000000100";
+constant STAT03 : stat := "00000000000000000000001000";
+constant STAT04 : stat := "00000000000000000000010000";
+constant STAT05 : stat := "00000000000000000000100000";
+constant STAT06 : stat := "00000000000000000001000000";
+constant STAT07 : stat := "00000000000000000010000000";
+constant STAT08 : stat := "00000000000000000100000000";
+constant STAT09 : stat := "00000000000000001000000000";
+constant STAT10 : stat := "00000000000000010000000000";
+constant STAT11 : stat := "00000000000000100000000000";
+constant STAT12 : stat := "00000000000001000000000000";
+constant STAT13 : stat := "00000000000010000000000000";
+constant STAT14 : stat := "00000000000100000000000000";
+constant STAT15 : stat := "00000000001000000000000000";
+constant STAT16 : stat := "00000000010000000000000000";
+constant STAT17 : stat := "00000000100000000000000000";
+constant STAT18 : stat := "00000001000000000000000000";
+constant STAT19 : stat := "00000010000000000000000000";
+constant STAT20 : stat := "00000100000000000000000000";
+constant STAT21 : stat := "00001000000000000000000000";
+constant STAT22 : stat := "00010000000000000000000000";
+constant STAT23 : stat := "00100000000000000000000000";
+constant STAT24 : stat := "01000000000000000000000000";
+constant STAT25 : stat := "10000000000000000000000000";
+
+  signal State : stat; -- State
+  signal NxtSt : stat; -- Next State
   signal Jmp   : STD_LOGIC;                     -- JMP
   signal Jz    : STD_LOGIC;                     -- JZ
   signal Jc    : STD_LOGIC;                     -- JC
   signal Jm    : STD_LOGIC;                     -- JM
+  singal Jnz   : STD_LOGIC;                     -- JNZ
+  signal Jnc   : STD_LOGIC;                     -- JNC
+  signal Jnm   : STD_LOGIC;                     -- JNM
   signal JmpCnd: STD_LOGIC;                     -- Jmp Condition
   signal Immd  : STD_LOGIC;                     -- Immediate mode
+  signal Cmp   : STD_LOGIC;                     -- CMP
+  signal Ld    : STD_LOGIC;                     -- LD
 
 begin
 -- State machine
-  with Stat select
-    DecSt <= "00000000000001" when "0000",
-             "00000000000010" when "0001",
-             "00000000000100" when "0010",
-             "00000000001000" when "0011",
-             "00000000010000" when "0100",
-             "00000000100000" when "0101",
-             "00000001000000" when "0110",
-             "00000010000000" when "0111",
-             "00000100000000" when "1000",
-             "00001000000000" when "1001",
-             "00010000000000" when "1010",
-             "00100000000000" when "1011",
-             "01000000000000" when "1100",
-             "10000000000000" when others;
-
-  Type1 <= '1' when OP="0001" or OP="0011" or OP="0100" or -- LD/ADD/SUB
-           OP="0101" or OP="0110" or OP="0111" or -- CMP/AND/OR
-           OP="1000" else '0';                    -- XOR
   
-  NxtSt <= "0000" when (DecSt(0)='1' and Stop='1') or    -- Stop
-                       (DecSt(1)='1' and OP="0000") or   -- No
-                       DecSt(3)='1' or DecSt(4)='1' or   -- LD/.../XOR/SHxx,ST
-                       DecSt(5)='1' or DecSt(7)='1' or   -- JMP,CALL
-                       DecSt(9)='1' or DecSt(11)='1' or  -- PUSH,POP
-                       DecSt(12)='1' or DecSt(13)='1' else -- RET,HALT
-           "0001" when DecSt(0)='1' and Stop='0'  else   -- Fetch
-           "0010" when DecSt(1)='1' and Type1='1' else   -- LD/ADD/.../XOR
+  NxtSt <= STAT00 when (State{0}='1' and Stop='1') or    -- Stop
+                       State{3}='1' or State{4}='1' or   -- LD/.../XOR/SHxx,ST
+                       State{5}='1' or State{7}='1' or   -- JMP,CALL
+                       State{8}='1' or State{10}='1' or  -- PUSH,POP
+                       State{11}='1' or State{13}='1' or -- RET,HALT
+                       State{15}='1' or State{16}='1' or
+                       State{18}='1' or State{19}='1' or
+                       State{20}='1' else
+           STAT01 when State{0}='1' and Stop='0'  else   -- Fetch
+           STAT02 when DecSt(1)='1' and Type1='1' else   -- LD/ADD/.../XOR
            "0011" when (DecSt(1)='1' and OP="1001") or   -- SHIFT
                        DecSt(2)='1' else                 -- LD/ADD/.../XOR
            "0100" when DecSt(1)='1' and OP="0010" else   -- ST
