@@ -38,7 +38,10 @@ architecture Behavioral of Cpu is
            OP    : in  STD_LOGIC_vector (3 downto 0);
            Rd    : in  STD_LOGIC_vector (1 downto 0);
            Rx    : in  STD_LOGIC_vector (1 downto 0);
-           Flag  : in  STD_LOGIC_vector (3 downto 0);   -- ECSZ
+           FlagE : in  STD_LOGIC;   -- E
+           FlagC : in  STD_LOGIC;   -- C
+           FlagS : in  STD_LOGIC;   -- S
+           FlagZ : in  STD_LOGIC;   -- Z
            Stop  : in  STD_LOGIC;
            -- CPU内部の制御用に出力
            IrLd  : out  STD_LOGIC;
