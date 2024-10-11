@@ -84,7 +84,7 @@ constant STAT25 : stat := "10000000000000000000000000";
   signal Jz    : STD_LOGIC;                     -- JZ
   signal Jc    : STD_LOGIC;                     -- JC
   signal Jm    : STD_LOGIC;                     -- JM
-  singal Jnz   : STD_LOGIC;                     -- JNZ
+  signal Jnz   : STD_LOGIC;                     -- JNZ
   signal Jnc   : STD_LOGIC;                     -- JNC
   signal Jnm   : STD_LOGIC;                     -- JNM
   signal JmpCnd: STD_LOGIC;                     -- Jmp Condition
@@ -142,7 +142,7 @@ begin
   JmpCnd <= Jmp or (Jz and FlagZ) or (Jc and FlagC) or (Jm and FlagS) or 
             (Jnz and not FlagZ) or (Jnc and not FlagC) or (Jnm and not FlagS);
   
-  IrLd  <= State(0);                                         -- Stop
+  LiLd  <= State(0);                                         -- Stop
   DrLd  <= State(1) or                                       -- Fetch
            (State(2) and not Immd) or                        -- LD/ADD/.../XOR
            State(6) or State(14);                            -- IN, POP
@@ -153,7 +153,7 @@ begin
            State(15)='1' else '0';                           -- POP
   SpP1  <= State(14) or State(16) or State(17);              -- POP, RET, RETI
   SpM1  <= State(9)  or State(12) or                         -- CALL, PUSH
-           Stete(21) or State(23);                           -- Intr
+           State(21) or State(23);                           -- Intr
   PcP1  <= (State(0) and not Stop) or                        -- Stop
            State(2) or                                       -- LD/ADD/.../XOR
            State(4) or (State(5) and not JmpCnd) or          -- ST, JMP
@@ -163,7 +163,7 @@ begin
            State(24) or State(25);                           -- Intr
   Ma    <= "00" when State(0)='1' or State(1)='1' or
                      State(25)='1' else                      -- "00"=PC
-           "01" when State(2)='1' or State(4) or 
+           "01" when State(2)='1' or State(4)='1' or 
                      State(6)='1' else                       -- "01"=EA
            "10";                                             -- "10"=SP
   Md    <= "00" when State(10)='1' or State(22)='1' else     -- "00"=PC

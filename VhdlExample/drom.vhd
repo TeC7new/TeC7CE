@@ -30,7 +30,7 @@ entity TEC_DROM is
     P_CLK  : in std_logic;
     P_RESET: in std_logic;
     P_ADDR : in  std_logic_vector(7 downto 0);
-    P_DOUT : out std_logic_vector(7 downto 0)
+    P_DOUT : out std_logic_vector(25 downto 0)
   );
 end TEC_DROM;
 
@@ -48,7 +48,7 @@ architecture BEHAVE of TEC_DROM is
       end loop;
       return ram;
     end function;
-  signal mem : memory := read_file("tec_drom.txt");
+  signal mem : memory := read_file("drom.txt");
 
   begin		
 	 process(P_CLK, P_RESET)
