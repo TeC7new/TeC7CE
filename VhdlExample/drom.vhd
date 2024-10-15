@@ -54,7 +54,7 @@ architecture BEHAVE of TEC_DROM is
 	 process(Clk, Reset)
 	   begin
 		  if (Reset='0') then
-		    Dout <= "00000000000000000000000000";
+		    Dout <= (others => '0');
 		  elsif (Clk'event and Clk='0') then
 	       Dout <= mem( conv_integer(Addr) );
 		  end if;

@@ -78,31 +78,16 @@ architecture Behavioral of Cpu is
 
 -- PSW
   signal PC  : std_logic_vector(7 downto 0);
-  signal FLG : std_logic_vector(3 downto 0);            -- CSZE
+  signal E   : std_logic;            -- CSZE
+  signal C   : std_logic;
+  signal S   : std_logic;
+  signal Z   : std_logic;
 
 -- IR
   signal OP  : std_logic_vector(3 downto 0);
   signal Rd  : std_logic_vector(1 downto 0);
   signal Rx  : std_logic_vector(1 downto 0);
-
--- オペコード
-  constant OP_NO  : std_logic_vector(3 downto 0) := "0000"; -- 0
-  constant OP_LD  : std_logic_vector(3 downto 0) := "0001"; -- 1
-  constant OP_ST  : std_logic_vector(3 downto 0) := "0010"; -- 2
-  constant OP_ADD : std_logic_vector(3 downto 0) := "0011"; -- 3
-  constant OP_SUB : std_logic_vector(3 downto 0) := "0100"; -- 4
-  constant OP_CMP : std_logic_vector(3 downto 0) := "0101"; -- 5
-  constant OP_AND : std_logic_vector(3 downto 0) := "0110"; -- 6
-  constant OP_OR  : std_logic_vector(3 downto 0) := "0111"; -- 7
-  constant OP_XOR : std_logic_vector(3 downto 0) := "1000"; -- 8
-  constant OP_SFT : std_logic_vector(3 downto 0) := "1001"; -- 9
-  constant OP_JMP : std_logic_vector(3 downto 0) := "1010"; -- A
-  constant OP_CALL: std_logic_vector(3 downto 0) := "1011"; -- B
-  constant OP_IO  : std_logic_vector(3 downto 0) := "1100"; -- C
-  constant OP_STCK: std_logic_vector(3 downto 0) := "1101"; -- D
-  constant OP_RET : std_logic_vector(3 downto 0) := "1110"; -- E
-  constant OP_HALT: std_logic_vector(3 downto 0) := "1111"; -- F
-
+  
 -- DR
   signal DR  : std_logic_vector(7 downto 0);
 
