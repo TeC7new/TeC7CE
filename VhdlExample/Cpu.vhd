@@ -16,7 +16,10 @@ entity Cpu is
          Stop    : in  std_logic;
          Halt    : out std_logic;
          Li      : out std_logic;                       -- 命令フェッチ
-         Flags   : out std_logic_vector (3 downto 0);   -- CSZE
+         FlagE   : out std_logic;   -- E
+         FlagC   : out std_logic;   -- C
+         FlagS   : out std_logic;   -- S
+         FlagZ   : out_std_logic;   -- Z
          -- RAM
          Addr    : out std_logic_vector (7 downto 0);
          Din     : in  std_logic_vector (7 downto 0);

@@ -17,7 +17,7 @@
 -- る損害に関しても，その責任を負わない．
 --
 --
--- TeC Microcode
+-- TeC decode ROM
 --
 library IEEE;
 use std.textio.all;
@@ -27,15 +27,15 @@ use ieee.std_logic_textio.all;
 
 entity TEC_DROM is
   port (
-    P_CLK  : in std_logic;
-    P_RESET: in std_logic;
-    P_ADDR : in  std_logic_vector(7 downto 0);
-    P_DOUT : out std_logic_vector(25 downto 0)
+    Clk  : in std_logic;
+    Reset: in std_logic;
+    Addr : in  std_logic_vector(7 downto 0);
+    Dout : out std_logic_vector(25 downto 0)
   );
 end TEC_DROM;
 
 architecture BEHAVE of TEC_DROM is
-  subtype word is std_logic_vector(7 downto 0);
+  subtype word is std_logic_vector(25 downto 0);
   type memory is array(0 to 255) of word;
   function read_file (fname : in string) return memory is
     file data_in : text is in fname;
@@ -48,15 +48,15 @@ architecture BEHAVE of TEC_DROM is
       end loop;
       return ram;
     end function;
-  signal mem : memory := read_file("drom.txt");
+  signal mem : memory := read_file("drom.txt"); --memの初期化
 
   begin		
-	 process(P_CLK, P_RESET)
+	 process(Clk, Reset)
 	   begin
-		  if (P_RESET='0') then
-		    P_DOUT <= "00000000";
-		  elsif (P_CLK'event and P_CLK='0') then
-	       P_DOUT <= mem( conv_integer(P_ADDR) );
+		  if (Reset='0') then
+		    Dout <= "00000000000000000000000000";
+		  elsif (Clk'event and Clk='0') then
+	       Dout <= mem( conv_integer(Addr) );
 		  end if;
 		end process;
   end BEHAVE;
