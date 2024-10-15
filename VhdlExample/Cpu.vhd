@@ -82,10 +82,10 @@ architecture Behavioral of Cpu is
 
 -- PSW
   signal PC   : std_logic_vector(7 downto 0);
-  signal FlagE: std_logic;            -- E
-  signal FlagC: std_logic;            -- C
-  signal FlagS: std_logic;            -- S
-  signal FlagZ: std_logic;            -- Z
+  signal FLG_E: std_logic;            -- E
+  signal FLG_C: std_logic;            -- C
+  signal FLG_S: std_logic;            -- S
+  signal FLG_Z: std_logic;            -- Z
 
 -- IR
   signal OP   : std_logic_vector(3 downto 0);
@@ -104,15 +104,18 @@ architecture Behavioral of Cpu is
   signal SftRd: std_logic_vector(8 downto 0); -- RegRdをシフトしたもの
 
 -- 内部制御線（ステートマシンの出力)
-  signal IrLd : std_logic;                    -- IR:Ld
-  signal DrLd : std_logic;                    -- DR:Ld
-  signal FlgLd: std_logic;                    -- Flag:Ld
-  signal GrLd : std_logic;                    -- GR:Ld
-  signal SpM1 : std_logic;                    -- SP:M1
-  signal SpP1 : std_logic;                    -- SP:P1
-  signal PcP1 : std_logic;                    -- PC:P1
-  signal PcJmp: std_logic;                    -- PC:JMP
-  signal PcRet: std_logic;                    -- PC:RET
+  signal IrLd  : std_logic;                    -- IR:Ld
+  signal DrLd  : std_logic;                    -- DR:Ld
+  signal FlgLdA: std_logic;                    -- Flag:LdA 
+  signal FlgLdM: std_logic;                    -- Flag:LdM
+  signal FlgOn : std_logic;                    -- Flag:On
+  signal FlgOff: std_logic;                    -- Flag:Off
+  signal GrLd  : std_logic;                    -- GR:Ld
+  signal SpM1  : std_logic;                    -- SP:M1
+  signal SpP1  : std_logic;                    -- SP:P1
+  signal PcP1  : std_logic;                    -- PC:P1
+  signal PcJmp : std_logic;                    -- PC:JMP
+  signal PcRet : std_logic;                    -- PC:RET
 
   signal Ma   : std_logic_vector(1 downto 0); -- MA(PC=00,EA=01,SP=10)
   signal Md   : std_logic_vector(1 downto 0); -- MD(PC=0,FLAG=,GR=1)
@@ -135,7 +138,8 @@ begin
   
   EA <= DR + RegRx;
 
-  Dout <= PC when Md='0' else RegRd;
+  Dout <= PC when Md="00" else
+          FLAG when Md="01" else GR;
   
 -- ALU
   SftRd <= (RegRd & '0') when Rx(1)='0' else                      -- SHLA/SHLL
