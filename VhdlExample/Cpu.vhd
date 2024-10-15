@@ -13,8 +13,11 @@ entity Cpu is
   Port ( Clk     : in  std_logic;
          -- 制御
          Reset   : in  std_logic;
+         Intr    : in  std_logic;
          Stop    : in  std_logic;
          Halt    : out std_logic;
+         Ir      : out std_logic;
+         Mr      : out std_logic;
          Li      : out std_logic;                       -- 命令フェッチ
          FlagE   : out std_logic;   -- E
          FlagC   : out std_logic;   -- C
@@ -45,6 +48,7 @@ architecture Behavioral of Cpu is
            FlagC : in  STD_LOGIC;   -- C
            FlagS : in  STD_LOGIC;   -- S
            FlagZ : in  STD_LOGIC;   -- Z
+           Intr  : in  STD_LOGIC;
            Stop  : in  STD_LOGIC;
            -- CPU内部の制御用に出力
            IrLd  : out  STD_LOGIC;
@@ -71,49 +75,49 @@ architecture Behavioral of Cpu is
   end component;
 
 -- CPU Register
-  signal G0  : std_logic_vector(7 downto 0);
-  signal G1  : std_logic_vector(7 downto 0);
-  signal G2  : std_logic_vector(7 downto 0);
-  signal SP  : std_logic_vector(7 downto 0);
+  signal G0   : std_logic_vector(7 downto 0);
+  signal G1   : std_logic_vector(7 downto 0);
+  signal G2   : std_logic_vector(7 downto 0);
+  signal SP   : std_logic_vector(7 downto 0);
 
 -- PSW
-  signal PC  : std_logic_vector(7 downto 0);
-  signal E   : std_logic;            -- CSZE
-  signal C   : std_logic;
-  signal S   : std_logic;
-  signal Z   : std_logic;
+  signal PC   : std_logic_vector(7 downto 0);
+  signal FlagE: std_logic;            -- E
+  signal FlagC: std_logic;            -- C
+  signal FlagS: std_logic;            -- S
+  signal FlagZ: std_logic;            -- Z
 
 -- IR
-  signal OP  : std_logic_vector(3 downto 0);
-  signal Rd  : std_logic_vector(1 downto 0);
-  signal Rx  : std_logic_vector(1 downto 0);
+  signal OP   : std_logic_vector(3 downto 0);
+  signal Rd   : std_logic_vector(1 downto 0);
+  signal Rx   : std_logic_vector(1 downto 0);
   
 -- DR
-  signal DR  : std_logic_vector(7 downto 0);
+  signal DR   : std_logic_vector(7 downto 0);
 
 -- 内部バス
-  signal EA    : std_logic_vector(7 downto 0); -- Effective Address
-  signal RegRd : std_logic_vector(7 downto 0); -- Reg[Rd]
-  signal RegRx : std_logic_vector(7 downto 0); -- Reg[Rx]
-  signal Alu   : std_logic_vector(8 downto 0); -- ALU出力（キャリー付)
-  signal Zero  : std_logic;                    -- ALUが0か？
-  signal SftRd : std_logic_vector(8 downto 0); -- RegRdをシフトしたもの
+  signal EA   : std_logic_vector(7 downto 0); -- Effective Address
+  signal RegRd: std_logic_vector(7 downto 0); -- Reg[Rd]
+  signal RegRx: std_logic_vector(7 downto 0); -- Reg[Rx]
+  signal Alu  : std_logic_vector(8 downto 0); -- ALU出力（キャリー付)
+  signal Zero : std_logic;                    -- ALUが0か？
+  signal SftRd: std_logic_vector(8 downto 0); -- RegRdをシフトしたもの
 
 -- 内部制御線（ステートマシンの出力)
-  signal IrLd  : std_logic;                    -- IR:Ld
-  signal DrLd  : std_logic;                    -- DR:Ld
-  signal FlgLd : std_logic;                    -- Flag:Ld
-  signal GrLd  : std_logic;                    -- GR:Ld
-  signal SpM1  : std_logic;                    -- SP:M1
-  signal SpP1  : std_logic;                    -- SP:P1
-  signal PcP1  : std_logic;                    -- PC:P1
-  signal PcJmp : std_logic;                    -- PC:JMP
-  signal PcRet : std_logic;                    -- PC:RET
+  signal IrLd : std_logic;                    -- IR:Ld
+  signal DrLd : std_logic;                    -- DR:Ld
+  signal FlgLd: std_logic;                    -- Flag:Ld
+  signal GrLd : std_logic;                    -- GR:Ld
+  signal SpM1 : std_logic;                    -- SP:M1
+  signal SpP1 : std_logic;                    -- SP:P1
+  signal PcP1 : std_logic;                    -- PC:P1
+  signal PcJmp: std_logic;                    -- PC:JMP
+  signal PcRet: std_logic;                    -- PC:RET
 
-  signal Ma    : std_logic_vector(1 downto 0); -- MA(PC=00,EA=01,SP=10)
-  signal Md    : std_logic_vector(1 downto 0); -- MD(PC=0,FLAG=,GR=1)
+  signal Ma   : std_logic_vector(1 downto 0); -- MA(PC=00,EA=01,SP=10)
+  signal Md   : std_logic_vector(1 downto 0); -- MD(PC=0,FLAG=,GR=1)
 
-  signal Io    : std_logic;                    --IO
+  signal Io   : std_logic;                    --IO
 
 begin
 -- コンソールへの接続
@@ -121,9 +125,9 @@ begin
   Li    <= IrLd;
 
 -- 制御部
-  seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FLG, Stop,
-                            IrLd, DrLd, FlgLdA, FlgLdM, GrLd, SpM1, SpP1, PcP1,
-                            PcJmp, PcRet, Ma, Md, Ir, Mr, Err, We, Halt);
+  seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlagE, FlagC, FlagS, FlagZ,
+                            Stop, IrLd, DrLd, FlgLdA, FlgLdM, GrLd, SpM1, SpP1,
+                            PcP1, PcJmp, PcRet, Ma, Md, Ir, Mr, Err, We, Halt);
 
 -- BUS
   Addr <= PC when Ma="00" else
