@@ -75,33 +75,33 @@ architecture Behavioral of Cpu is
   end component;
 
 -- CPU Register
-  signal G0   : std_logic_vector(7 downto 0);
-  signal G1   : std_logic_vector(7 downto 0);
-  signal G2   : std_logic_vector(7 downto 0);
-  signal SP   : std_logic_vector(7 downto 0);
+  signal G0    : std_logic_vector(7 downto 0);
+  signal G1    : std_logic_vector(7 downto 0);
+  signal G2    : std_logic_vector(7 downto 0);
+  signal SP    : std_logic_vector(7 downto 0);
 
 -- PSW
-  signal PC   : std_logic_vector(7 downto 0);
-  signal FLG_E: std_logic;            -- E
-  signal FLG_C: std_logic;            -- C
-  signal FLG_S: std_logic;            -- S
-  signal FLG_Z: std_logic;            -- Z
+  signal PC    : std_logic_vector(7 downto 0);
+  signal FLG_E : std_logic;            -- E
+  signal FLG_C : std_logic;            -- C
+  signal FLG_S : std_logic;            -- S
+  signal FLG_Z : std_logic;            -- Z
 
 -- IR
-  signal OP   : std_logic_vector(3 downto 0);
-  signal Rd   : std_logic_vector(1 downto 0);
-  signal Rx   : std_logic_vector(1 downto 0);
+  signal OP    : std_logic_vector(3 downto 0);
+  signal Rd    : std_logic_vector(1 downto 0);
+  signal Rx    : std_logic_vector(1 downto 0);
   
 -- DR
-  signal DR   : std_logic_vector(7 downto 0);
+  signal DR    : std_logic_vector(7 downto 0);
 
 -- 内部バス
-  signal EA   : std_logic_vector(7 downto 0); -- Effective Address
-  signal RegRd: std_logic_vector(7 downto 0); -- Reg[Rd]
-  signal RegRx: std_logic_vector(7 downto 0); -- Reg[Rx]
-  signal Alu  : std_logic_vector(8 downto 0); -- ALU出力（キャリー付)
-  signal Zero : std_logic;                    -- ALUが0か？
-  signal SftRd: std_logic_vector(8 downto 0); -- RegRdをシフトしたもの
+  signal EA    : std_logic_vector(7 downto 0); -- Effective Address
+  signal RegRd : std_logic_vector(7 downto 0); -- Reg[Rd]
+  signal RegRx : std_logic_vector(7 downto 0); -- Reg[Rx]
+  signal Alu   : std_logic_vector(8 downto 0); -- ALU出力（キャリー付)
+  signal Zero  : std_logic;                    -- ALUが0か？
+  signal SftRd : std_logic_vector(8 downto 0); -- RegRdをシフトしたもの
 
 -- 内部制御線（ステートマシンの出力)
   signal IrLd  : std_logic;                    -- IR:Ld
@@ -117,10 +117,10 @@ architecture Behavioral of Cpu is
   signal PcJmp : std_logic;                    -- PC:JMP
   signal PcRet : std_logic;                    -- PC:RET
 
-  signal Ma   : std_logic_vector(1 downto 0); -- MA(PC=00,EA=01,SP=10)
-  signal Md   : std_logic_vector(1 downto 0); -- MD(PC=0,FLAG=,GR=1)
+  signal Ma    : std_logic_vector(1 downto 0); -- MA(PC=00,EA=01,SP=10)
+  signal Md    : std_logic_vector(1 downto 0); -- MD(PC=0,FLAG=,GR=1)
 
-  signal Io   : std_logic;                    --IO
+  signal Io    : std_logic;                    --IO
 
 begin
 -- コンソールへの接続
