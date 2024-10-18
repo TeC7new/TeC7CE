@@ -19,10 +19,6 @@ entity Cpu is
          Ir      : out std_logic;
          Mr      : out std_logic;
          Li      : out std_logic;                       -- 命令フェッチ
-         FlagE   : out std_logic;   -- E
-         FlagC   : out std_logic;   -- C
-         FlagS   : out std_logic;   -- S
-         FlagZ   : out_std_logic;   -- Z
          -- RAM
          Addr    : out std_logic_vector (7 downto 0);
          Din     : in  std_logic_vector (7 downto 0);
@@ -32,7 +28,8 @@ entity Cpu is
          DbgAin  : in  std_logic_vector (2 downto 0);
          DbgDin  : in  std_logic_vector (7 downto 0);
          DbgDout : out std_logic_vector (7 downto 0);
-         DbgWe   : in  std_logic
+         DbgWe   : in  std_logic;
+         Flags   : out std_logic_vector (2 downto 0)    -- CSZ
          );
 end Cpu;
 
@@ -82,10 +79,10 @@ architecture Behavioral of Cpu is
 
 -- PSW
   signal PC    : std_logic_vector(7 downto 0);
-  signal FLG_E : std_logic;            -- E
-  signal FLG_C : std_logic;            -- C
-  signal FLG_S : std_logic;            -- S
-  signal FLG_Z : std_logic;            -- Z
+  signal FlagE : std_logic;            -- E
+  signal FlagC : std_logic;            -- C
+  signal FlagS : std_logic;            -- S
+  signal FlagZ : std_logic;            -- Z
 
 -- IR
   signal OP    : std_logic_vector(3 downto 0);
@@ -124,38 +121,38 @@ architecture Behavioral of Cpu is
 
 begin
 -- コンソールへの接続
-  Flags <= FLG;
+  Flags <= FlagC & FlagS & FlagZ;
   Li    <= IrLd;
 
 -- 制御部
-  seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlagE, FlagC, FlagS, FlagZ,
-                            Stop, IrLd, DrLd, FlgLdA, FlgLdM, GrLd, SpM1, SpP1,
+  seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlagE, FlagC, FlagS, FlagZ, Intr,
+                            Stop, IrLd, DrLd, FlgLdA, FlgLdM, FlgOn, FlgOff, GrLd, SpM1, SpP1,
                             PcP1, PcJmp, PcRet, Ma, Md, Ir, Mr, Err, We, Halt);
 
 -- BUS
   Addr <= PC when Ma="00" else
           EA when Ma="01" else SP;
   
-  EA <= DR + RegRx;
+  Ea <= DR + RegRx;
 
   Dout <= PC when Md="00" else
-          FLAG when Md="01" else GR;
+          (FlagE & FlagC & FlagS & FlagZ) when Md="01" else GR;
   
 -- ALU
   SftRd <= (RegRd & '0') when Rx(1)='0' else                      -- SHLA/SHLL
     (RegRd(0) & RegRd(7) & RegRd(7 downto 1)) when Rx(0)='0' else -- SHRA
     (RegRd(0) & '0' & RegRd(7 downto 1));                         -- SHRL
   
-  Alu <= ('0' & RegRd) + ('0' & DR) when OP=OP_ADD else
-         ('0' & RegRd) - ('0' & DR) when OP=OP_SUB or OP=OP_CMP else
-         ('0' & RegRd)and('0' & DR) when OP=OP_AND else
-         ('0' & RegRd)or ('0' & DR) when OP=OP_OR  else
-         ('0' & RegRd)xor('0' & DR) when OP=OP_XOR else
-         SftRd when OP=OP_SFT else ('0' & DR);
+  Alu <= ('0' & RegRd) + ('0' & DR) when OP="0011" else           -- Add
+         ('0' & RegRd) - ('0' & DR) when OP="0100" or OP="0101" else --Sub/Cmp
+         ('0' & RegRd)and('0' & DR) when OP="0110" else           -- And
+         ('0' & RegRd)or ('0' & DR) when OP="0111" else           -- Or
+         ('0' & RegRd)xor('0' & DR) when OP="1000" else           -- Xor
+         SftRd when OP="1001" else ('0' & DR);                    -- Shift
 
   Zero <= '1' when ALU(7 downto 0)="00000000" else '0';
 
--- IR,DR の制御
+-- IR の制御
   process(Clk)
   begin
     if (Clk'event and Clk='1') then
@@ -164,7 +161,12 @@ begin
         Rd <= Din(3 downto 2);
         Rx <= Din(1 downto 0);
       end if;
-      if (DrLd='1') then
+  end process;
+
+  -- DR の制御
+  process(Clk)
+  begin
+    if (DrLd='1') then
         DR <= Din;
       end if;
     end if;
@@ -182,7 +184,7 @@ begin
         PC <= Din;
       elsif (PcP1='1') then
         PC <= PC + 1;
-      elsif (DbgWe='1' and DbgAin="100") then
+      elsif (DbgWe='1' and DbgAin="100") then                 --コンソールからの書き込み
         PC <= DbgDin;
       end if;
     end if;
@@ -213,7 +215,7 @@ begin
         SP <= SP + 1;
       elsif (SpM1='1') then
         SP <= Sp - 1;
-      elsif (DbgWe='1') then
+      elsif (DbgWe='1') then                                  --コンソールからの書き込み
         case DbgAin is
           when "000" => G0 <= DbgDin;
           when "001" => G1 <= DbgDin;
@@ -231,12 +233,19 @@ begin
     if (Reset='1') then
       FLG <= "000";
     elsif (Clk'event and Clk='1') then
-      if (FlgLd='1') then
-        FLG(2) <= Alu(8);                -- Carry
-        FLG(1) <= Alu(7);                -- Sign
-        FLG(0) <= Zero;                  -- Zero
-      elsif (DbgWe='1' and DbgAin="101") then
-        FLG <= DbgDin(2 downto 0);
+      if (FlgLdA='1') then
+        FlagC <= Alu(8);                -- Carry
+        FlagS <= Alu(7);                -- Sign
+        FlagZ <= Zero;                  -- Zero
+      elsif (FlgLdM='1') then
+        FlagE <= Din(7);                -- Enable
+        FlagC <= Din(2);                -- Carry
+        FlagS <= Din(1);                -- Sign
+        FlagZ <= Din(0);                -- Zero
+      elsif (FlgOn='1') then
+        FlagE <= '1';                   -- Enable
+      elsif (FlgOff='1') then
+        FlagE <= '0';                   -- Enable
       end if;
     end if;
   end process;
