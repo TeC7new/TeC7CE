@@ -16,6 +16,7 @@ entity Cpu is
          Intr    : in  std_logic;
          Stop    : in  std_logic;
          Halt    : out std_logic;
+         Err     : out std_logic;
          Ir      : out std_logic;
          Mr      : out std_logic;
          Li      : out std_logic;                       -- 命令フェッチ
@@ -78,11 +79,11 @@ architecture Behavioral of Cpu is
   signal SP    : std_logic_vector(7 downto 0);
 
 -- PSW
-  signal PC    : std_logic_vector(7 downto 0);
-  signal FlagE : std_logic;            -- E
-  signal FlagC : std_logic;            -- C
-  signal FlagS : std_logic;            -- S
-  signal FlagZ : std_logic;            -- Z
+  signal PC   : std_logic_vector(7 downto 0);
+  signal FlgE : std_logic;            -- E
+  signal FlgC : std_logic;            -- C
+  signal FlgS : std_logic;            -- S
+  signal FlgZ : std_logic;            -- Z
 
 -- IR
   signal OP    : std_logic_vector(3 downto 0);
@@ -121,11 +122,11 @@ architecture Behavioral of Cpu is
 
 begin
 -- コンソールへの接続
-  Flags <= FlagC & FlagS & FlagZ;
+  Flags <= FlgC & FlgS & FlgZ;
   Li    <= IrLd;
 
 -- 制御部
-  seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlagE, FlagC, FlagS, FlagZ, Intr,
+  seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlgE, FlgC, FlgS, FlgZ, Intr,
                             Stop, IrLd, DrLd, FlgLdA, FlgLdM, FlgOn, FlgOff, GrLd, SpM1, SpP1,
                             PcP1, PcJmp, PcRet, Ma, Md, Ir, Mr, Err, We, Halt);
 
@@ -136,7 +137,7 @@ begin
   Ea <= DR + RegRx;
 
   Dout <= PC when Md="00" else
-          (FlagE & FlagC & FlagS & FlagZ) when Md="01" else GR;
+          (FlgE & FlgC & FlgS & FlgZ) when Md="01" else RegRd;
   
 -- ALU
   SftRd <= (RegRd & '0') when Rx(1)='0' else                      -- SHLA/SHLL
@@ -161,6 +162,7 @@ begin
         Rd <= Din(3 downto 2);
         Rx <= Din(1 downto 0);
       end if;
+    end if;
   end process;
 
   -- DR の制御
@@ -168,7 +170,6 @@ begin
   begin
     if (DrLd='1') then
         DR <= Din;
-      end if;
     end if;
   end process;
   
@@ -231,21 +232,24 @@ begin
   process(Clk, Reset)
   begin
     if (Reset='1') then
-      FLG <= "000";
+      FlgE <= '0';
+      FlgC <= '0';
+      FlgS <= '0';
+      FlgZ <= '0';
     elsif (Clk'event and Clk='1') then
       if (FlgLdA='1') then
-        FlagC <= Alu(8);                -- Carry
-        FlagS <= Alu(7);                -- Sign
-        FlagZ <= Zero;                  -- Zero
+        FlgC <= Alu(8);                -- Carry
+        FlgS <= Alu(7);                -- Sign
+        FlgZ <= Zero;                  -- Zero
       elsif (FlgLdM='1') then
-        FlagE <= Din(7);                -- Enable
-        FlagC <= Din(2);                -- Carry
-        FlagS <= Din(1);                -- Sign
-        FlagZ <= Din(0);                -- Zero
+        FlgE <= Din(7);                -- Enable
+        FlgC <= Din(2);                -- Carry
+        FlgS <= Din(1);                -- Sign
+        FlgZ <= Din(0);                -- Zero
       elsif (FlgOn='1') then
-        FlagE <= '1';                   -- Enable
+        FlgE <= '1';                   -- Enable
       elsif (FlgOff='1') then
-        FlagE <= '0';                   -- Enable
+        FlgE <= '0';                   -- Enable
       end if;
     end if;
   end process;
