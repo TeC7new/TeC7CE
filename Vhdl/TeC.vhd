@@ -124,9 +124,16 @@ architecture Behavioral of TeC is
            -- 制御
            Reset   : in  std_logic;
            Stop    : in  std_logic;
+           Intr    : in  std_logic;
            Halt    : out std_logic;
-           Li      : out std_logic;                      -- 命令フェッチ
-           Flags   : out std_logic_vector (2 downto 0);  -- CSZ
+           Err     : out std_logic;
+           Mr      : out std_logic;
+           Ir      : out Std_logic;
+           Li      : out std_logic;                     -- 命令フェッチ
+           FlgE   : out std_logic;                      -- E
+           FlgC   : out std_logic;                      -- C
+           FlgS   : out std_logic;                      -- S 
+           FlgZ   : out std_logic;                      -- Z
            -- RAM
            Addr    : out std_logic_vector (7 downto 0);
            Din     : in  std_logic_vector (7 downto 0);
