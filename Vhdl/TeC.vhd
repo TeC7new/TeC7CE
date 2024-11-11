@@ -53,9 +53,16 @@ architecture Behavioral of TeC is
 -- CPU と Console の配線
   signal Reset      : std_logic;
   signal Stop       : std_logic;
+  signal Intr       : std_logic;
   signal Halt       : std_logic;
+  signal Err        : std_logic;
+  signal Mr         : std_logic;
+  signal Ir         : std_logic;
   signal Li         : std_logic;
-  signal Flags      : std_logic_vector (2 downto 0);     -- CSZ
+  signal FlgE       : std_logic;     -- E
+  signal FlgC       : std_logic;     -- C
+  signal FlgS       : std_logic;     -- S
+  signal FlgZ       : std_logic;     -- Z
 -- Console のデバッグ表示・書込み用
   signal DbgAddr    : std_logic_vector(7 downto 0);
   signal DbgDataCns : std_logic_vector(7 downto 0);
@@ -120,16 +127,16 @@ architecture Behavioral of TeC is
   end component;
 
   component Cpu
-    Port ( Clk     : in  std_logic;
+    Port ( Clk    : in  std_logic;
            -- 制御
-           Reset   : in  std_logic;
-           Stop    : in  std_logic;
-           Intr    : in  std_logic;
-           Halt    : out std_logic;
-           Err     : out std_logic;
-           Mr      : out std_logic;
-           Ir      : out Std_logic;
-           Li      : out std_logic;                     -- 命令フェッチ
+           Reset  : in  std_logic;
+           Stop   : in  std_logic;
+           Intr   : in  std_logic;
+           Halt   : out std_logic;
+           Err    : out std_logic;
+           Mr     : out std_logic;
+           Ir     : out Std_logic;
+           Li     : out std_logic;                     -- 命令フェッチ
            FlgE   : out std_logic;                      -- E
            FlgC   : out std_logic;                      -- C
            FlgS   : out std_logic;                      -- S 
