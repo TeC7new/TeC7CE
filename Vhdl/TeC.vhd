@@ -59,10 +59,7 @@ architecture Behavioral of TeC is
   signal Mr         : std_logic;
   signal Ir         : std_logic;
   signal Li         : std_logic;
-  signal FlgE       : std_logic;     -- E
-  signal FlgC       : std_logic;     -- C
-  signal FlgS       : std_logic;     -- S
-  signal FlgZ       : std_logic;     -- Z
+  signal Flags      : std_logic_vector(2 downto 0);     -- CSZ
 -- Console のデバッグ表示・書込み用
   signal DbgAddr    : std_logic_vector(7 downto 0);
   signal DbgDataCns : std_logic_vector(7 downto 0);
@@ -178,7 +175,7 @@ begin
       Stop    => Stop,
       Halt    => Halt,
       Li      => Li,
-      Flags   => FlgC & FlgS & FlgZ,
+      Flags   => Flags,
       -- CPU と Memory 内容の表示・書換え用配線
       Aout    => DbgAddr,
       Dout    => DbgDataCns,
@@ -223,13 +220,12 @@ begin
       Reset   => Reset,
       Stop    => Stop,
       Halt    => Halt,
+      Intr    => '0',
       Err     => Err,
       Mr      => Mr,
       Ir      => Ir,
       Li      => Li,
-      FlgC    => FlgC,
-      FlgS    => FlgS,
-      FlgZ    => FlgZ,
+      Flags   => Flags,
       -- RAM
       Addr    => Addr,
       Din     => DataIn,
