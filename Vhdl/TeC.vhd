@@ -127,20 +127,16 @@ architecture Behavioral of TeC is
   end component;
 
   component Cpu
-    Port ( Clk    : in  std_logic;
+    Port ( Clk     : in  std_logic;
            -- 制御
-           Reset  : in  std_logic;
-           Stop   : in  std_logic;
-           Intr   : in  std_logic;
-           Halt   : out std_logic;
-           Err    : out std_logic;
-           Mr     : out std_logic;
-           Ir     : out Std_logic;
-           Li     : out std_logic;                     -- 命令フェッチ
-           FlgE   : out std_logic;                      -- E
-           FlgC   : out std_logic;                      -- C
-           FlgS   : out std_logic;                      -- S 
-           FlgZ   : out std_logic;                      -- Z
+           Reset   : in  std_logic;
+           Intr    : in  std_logic;
+           Stop    : in  std_logic;
+           Halt    : out std_logic;
+           Err     : out std_logic;
+           Ir      : out std_logic;
+           Mr      : out std_logic;
+           Li      : out std_logic;                       -- 命令フェッチ
            -- RAM
            Addr    : out std_logic_vector (7 downto 0);
            Din     : in  std_logic_vector (7 downto 0);
@@ -150,8 +146,9 @@ architecture Behavioral of TeC is
            DbgAin  : in  std_logic_vector (2 downto 0);
            DbgDin  : in  std_logic_vector (7 downto 0);
            DbgDout : out std_logic_vector (7 downto 0);
-           DbgWe   : in  std_logic
-           );
+           DbgWe   : in  std_logic;
+           Flags   : out std_logic_vector (2 downto 0)    -- CSZ
+         );
   end component;
 
   component Ram
@@ -181,7 +178,7 @@ begin
       Stop    => Stop,
       Halt    => Halt,
       Li      => Li,
-      Flags   => Flags,
+      Flags   => FlgC & FlgS & FlgZ,
       -- CPU と Memory 内容の表示・書換え用配線
       Aout    => DbgAddr,
       Dout    => DbgDataCns,
@@ -226,8 +223,13 @@ begin
       Reset   => Reset,
       Stop    => Stop,
       Halt    => Halt,
+      Err     => Err,
+      Mr      => Mr,
+      Ir      => Ir,
       Li      => Li,
-      Flags   => Flags,
+      FlgC    => FlgC,
+      FlgS    => FlgS,
+      FlgZ    => FlgZ,
       -- RAM
       Addr    => Addr,
       Din     => DataIn,

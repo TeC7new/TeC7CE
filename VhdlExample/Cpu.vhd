@@ -100,6 +100,7 @@ architecture Behavioral of Cpu is
   signal Alu   : std_logic_vector(8 downto 0); -- ALU出力（キャリー付)
   signal Zero  : std_logic;                    -- ALUが0か？
   signal SftRd : std_logic_vector(8 downto 0); -- RegRdをシフトしたもの
+  signal Flags : std_logic_vector(7 downto 0); -- FLAGをまとめたもの
 
 -- 内部制御線（ステートマシンの出力)
   signal IrLd  : std_logic;                    -- IR:Ld
@@ -137,7 +138,7 @@ begin
   Ea <= DR + RegRx;
 
   Dout <= PC when Md="00" else
-          (FlgE & FlgC & FlgS & FlgZ) when Md="01" else RegRd;
+          (FlgE & "0000" & FlgC & FlgS & FlgZ) when Md="01" else RegRd;
   
 -- ALU
   SftRd <= (RegRd & '0') when Rx(1)='0' else                      -- SHLA/SHLL
@@ -259,7 +260,8 @@ begin
              G1 when DbgAin="001" else
              G2 when DbgAin="010" else
              SP when DbgAin="011" else
-             PC;
+             PC when DbgAin="100" else
+             (FlgE & "0000" & FlgC & FlgS & FlgZ);
 
 end Behavioral;
 
