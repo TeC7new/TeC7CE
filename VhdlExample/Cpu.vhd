@@ -251,6 +251,13 @@ begin
         FlgE <= '1';                   -- Enable
       elsif (FlgOff='1') then
         FlgE <= '0';                   -- Enable
+      elsif (DbgWe='1') then           -- Console
+        if (DbgAin="110") then         --  Flag
+          FlgE <= DbgDin(7);           --   Enable
+          FlgC <= DbgDin(2);           --   Carry
+          FlgS <= DbgDin(1);           --   Sign
+          FlgZ <= DbgDin(0);           --   Zero
+        end if;
       end if;
     end if;
   end process;
