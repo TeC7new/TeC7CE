@@ -112,6 +112,7 @@ drom0: drom
            Reset => Reset,
            Addr  => DAddr,
            Dout  => Dcode);
+           
   
   NxtSt <=  DROM   when State(1)='1' else
             STAT00 when (State(0)='1' and Stop='1') or   -- Stop
