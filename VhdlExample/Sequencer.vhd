@@ -47,6 +47,18 @@ entity Sequencer is
 end Sequencer;
 
 architecture Behavioral of Sequencer is
+-- デコードROMの入出力
+signal DAddr : std_logic_vector(7 downto 0);
+signal Dcode : std_logic_vector(7 downto 0);
+
+component TEC_DROM
+  port (
+    Clk   : in  std_logic;
+    Reset : in  std_logic;
+    Addr  : in  std_logic_vector(7 downto 0);
+    Dout  : out std_logic_vector(7 downto 0)
+  );
+end component;
 
 subtype stat is STD_LOGIC_VECTOR(25 downto 0);
 constant STAT00 : stat := "00000000000000000000000001";
@@ -94,6 +106,12 @@ constant STAT25 : stat := "10000000000000000000000000";
 
 begin
 -- State machine
+
+drom0: drom
+  port map(Clk   => Clk,
+           Reset => Reset,
+           Addr  => DAddr,
+           Dout  => Dcode);
   
   NxtSt <=  DROM   when State(1)='1' else
             STAT00 when (State(0)='1' and Stop='1') or   -- Stop
@@ -117,6 +135,7 @@ begin
            STAT13 when State(12)='1' else                --PUSH
            STAT15 when State(14)='1' else                --POP
            STAT18 when State(17)='1'                     --RETI
+           STAT20
            ;                                       
 
   process(Clk, Reset)
