@@ -194,8 +194,8 @@ begin
   DataLed <= (not DinMem) when Mm='1' else (not DinCpu);
 
 -- ロータリースイッチの位置デコーダ
-  G0    <= PosDec(5);                            -- G0 選択中
-  Mm    <= PosDec(0);                            -- MM 選択中
+  G0    <= PosDec(5) and not PosDec(1);          -- G0 選択中
+  Mm    <= PosDec(0) and not PosDec(1);          -- MM 選択中
   Flg   <= PosDec(0) and PosDec(1);              -- FLAG 選択中
   G0Led <= not PosDec(5);
   G1Led <= not PosDec(4);
