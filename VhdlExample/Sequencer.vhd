@@ -23,7 +23,7 @@ entity Sequencer is
          Stop  : in  STD_LOGIC;
          Intr  : in  STD_LOGIC;
          -- CPU内部の制御用に出力
-         LiLd  : out  STD_LOGIC;
+         IrLd  : out  STD_LOGIC;
          DrLd  : out  STD_LOGIC;
          FlgLdA: out  STD_LOGIC;
          FlgLdM: out  STD_LOGIC;
@@ -142,7 +142,7 @@ begin
   JmpCnd <= Jmp or (Jz and FlagZ) or (Jc and FlagC) or (Jm and FlagS) or 
             (Jnz and not FlagZ) or (Jnc and not FlagC) or (Jnm and not FlagS);
   
-  LiLd  <= State(0);                                         -- Stop
+  IrLd  <= State(0);                                         -- Stop
   DrLd  <= State(1) or                                       -- Fetch
            (State(2) and not Immd) or                        -- LD/ADD/.../XOR
            State(6) or State(14);                            -- IN, POP

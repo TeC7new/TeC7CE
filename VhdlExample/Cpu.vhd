@@ -30,7 +30,7 @@ entity Cpu is
          DbgDin  : in  std_logic_vector (7 downto 0);
          DbgDout : out std_logic_vector (7 downto 0);
          DbgWe   : in  std_logic;
-         Flags   : out std_logic_vector (2 downto 0)    -- CSZ
+         Flag    : out std_logic_vector (2 downto 0)    -- CSZ
          );
 end Cpu;
 
@@ -123,7 +123,7 @@ architecture Behavioral of Cpu is
 
 begin
 -- コンソールへの接続
-  Flags <= FlgC & FlgS & FlgZ;
+  Flag  <= FlgC & FlgS & FlgZ;
   Li    <= IrLd;
 
 -- 制御部
