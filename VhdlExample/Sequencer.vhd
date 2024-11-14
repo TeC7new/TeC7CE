@@ -49,14 +49,14 @@ end Sequencer;
 architecture Behavioral of Sequencer is
 -- デコードROMの入出力
 signal DAddr : std_logic_vector(7 downto 0);
-signal Dcode : std_logic_vector(7 downto 0);
+signal Dcode : std_logic_vector(25 downto 0);
 
 component TEC_DROM
   port (
     Clk   : in  std_logic;
     Reset : in  std_logic;
     Addr  : in  std_logic_vector(7 downto 0);
-    Dout  : out std_logic_vector(7 downto 0)
+    Dout  : out std_logic_vector(25 downto 0)
   );
 end component;
 
@@ -107,12 +107,12 @@ constant STAT25 : stat := "10000000000000000000000000";
 begin
 -- State machine
 
-drom0: drom
+drom0: TEC_DROM
   port map(Clk   => Clk,
            Reset => Reset,
            Addr  => DAddr,
            Dout  => Dcode);
-           
+
   
   NxtSt <=  DROM   when State(1)='1' else
             STAT00 when (State(0)='1' and Stop='1') or   -- Stop
