@@ -225,7 +225,7 @@ begin
       Mr      => Mr,
       Ir      => Ir,
       Li      => Li,
-      Flags   => Flags,
+      Flag   => Flags,
       -- RAM
       Addr    => Addr,
       Din     => DataIn,
