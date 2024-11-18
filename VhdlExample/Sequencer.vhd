@@ -47,6 +47,7 @@ entity Sequencer is
 end Sequencer;
 
 architecture Behavioral of Sequencer is
+
 -- デコードROMの入出力
 signal DAddr : std_logic_vector(7 downto 0);
 signal Dcode : std_logic_vector(25 downto 0);
@@ -134,7 +135,7 @@ drom0: TEC_DROM
            STAT10 when State(9)='1' else                 --CALL
            STAT13 when State(12)='1' else                --PUSH
            STAT15 when State(14)='1' else                --POP
-           STAT18 when State(17)='1'                     --RETI
+           STAT18 when State(17)='1' else                --RETI
            STAT20
            ;                                       
 
