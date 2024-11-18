@@ -129,10 +129,10 @@ drom0: TEC_DROM
            STAT23 when State(22)='1' else                -- Intr
            STAT24 when State(23)='1' else                -- Intr
            STAT25 when State(24)='1' else                -- Intr
-           STAT01 when State(0)='1' and Stop='0'  else   -- Fetch
-           STAT03 when State(2)='1' else                 -- LD/ADD/.../XOR
-           STAT07 when State(6)='1'               else   --IN
-           STAT10 when State(9)='1' else                 --CALL
+           STAT01 when State(0)='1'  else                -- Fetch
+           STAT03 when State(2)='1'  else                -- LD/ADD/.../XOR
+           STAT07 when State(6)='1'  else                --IN
+           STAT10 when State(9)='1'  else                --CALL
            STAT13 when State(12)='1' else                --PUSH
            STAT15 when State(14)='1' else                --POP
            STAT18 when State(17)='1' else                --RETI
