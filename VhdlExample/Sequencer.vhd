@@ -105,15 +105,15 @@ constant STAT25 : std_logic_vector(25 downto 0) := "10000000000000000000000000";
 
 begin
 -- State machine
+  DAddr <= OP & Rd & Rx;
 
 drom0: TEC_DROM
   port map(Clk   => Clk,
            Reset => Reset,
            Addr  => DAddr,
            Dout  => Dcode);
-
   
-  NxtSt <=  DROM   when State(1)='1' else
+  NxtSt <=  Dcode  when State(1)='1' else
             STAT00 when (State(0)='1' and Stop='1') or   -- Stop
                        State(3)='1' or State(4)='1' or   -- LD/.../XOR/SHxx,ST
                        State(5)='1' or State(7)='1' or   -- JMP,IN
