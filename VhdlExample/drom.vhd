@@ -2,7 +2,7 @@
 -- TeC7 VHDL Source Code
 --    Tokuyama kousen Educational Computer Ver.7
 --
--- Copyright (C) 2002-2011 by
+-- Copyright (C) 2002-2024 by
 --                      Dept. of Computer Science and Electronic Engineering,
 --                      Tokuyama College of Technology, JAPAN
 --
@@ -44,19 +44,19 @@ architecture BEHAVE of TEC_DROM is
     begin
       for i in 0 to 255 loop
         readline (data_in, line_in);
-		  read(line_in, ram(i));
+        read(line_in, ram(i));
       end loop;
       return ram;
     end function;
   signal mem : memory := read_file("drom.txt"); --memの初期化
 
-  begin		
-	 process(Clk, Reset)
-	   begin
-		  if (Reset='0') then
-		    Dout <= (others => '0');
-		  elsif (Clk'event and Clk='0') then
-	       Dout <= mem( conv_integer(Addr) );
-		  end if;
-		end process;
-  end BEHAVE;
+begin
+  process(Clk, Reset)
+  begin
+    if (Reset='1') then
+      Dout <= (others => '0');
+    elsif (Clk'event and Clk='0') then
+      Dout <= mem( conv_integer(Addr) );
+    end if;
+  end process;
+end BEHAVE;
