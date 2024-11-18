@@ -169,8 +169,10 @@ begin
   -- DR の制御
   process(Clk)
   begin
-    if (DrLd='1') then
-        DR <= Din;
+    if (Clk'event and Clk='1') then
+      if (DrLd='1') then
+          DR <= Din;
+      end if;
     end if;
   end process;
   
