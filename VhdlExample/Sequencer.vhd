@@ -48,71 +48,73 @@ end Sequencer;
 
 architecture Behavioral of Sequencer is
 
--- デコードROMの入出力
+-- デコードROM
+subtype stat is std_logic_vector(25 downto 0);
 signal DAddr : std_logic_vector(7 downto 0);
-signal Dcode : std_logic_vector(25 downto 0);
+signal Dcode : Stat;
 
 component TEC_DROM
   port (
     Clk   : in  std_logic;
     Reset : in  std_logic;
     Addr  : in  std_logic_vector(7 downto 0);
-    Dout  : out std_logic_vector(25 downto 0)
+    Dout  : out Stat
   );
 end component;
 
--- subtype stat is STD_LOGIC_VECTOR(25 downto 0);
-constant STAT00 : std_logic_vector(25 downto 0) := "00000000000000000000000001";
-constant STAT01 : std_logic_vector(25 downto 0) := "00000000000000000000000010";
-constant STAT02 : std_logic_vector(25 downto 0) := "00000000000000000000000100";
-constant STAT03 : std_logic_vector(25 downto 0) := "00000000000000000000001000";
-constant STAT04 : std_logic_vector(25 downto 0) := "00000000000000000000010000";
-constant STAT05 : std_logic_vector(25 downto 0) := "00000000000000000000100000";
-constant STAT06 : std_logic_vector(25 downto 0) := "00000000000000000001000000";
-constant STAT07 : std_logic_vector(25 downto 0) := "00000000000000000010000000";
-constant STAT08 : std_logic_vector(25 downto 0) := "00000000000000000100000000";
-constant STAT09 : std_logic_vector(25 downto 0) := "00000000000000001000000000";
-constant STAT10 : std_logic_vector(25 downto 0) := "00000000000000010000000000";
-constant STAT11 : std_logic_vector(25 downto 0) := "00000000000000100000000000";
-constant STAT12 : std_logic_vector(25 downto 0) := "00000000000001000000000000";
-constant STAT13 : std_logic_vector(25 downto 0) := "00000000000010000000000000";
-constant STAT14 : std_logic_vector(25 downto 0) := "00000000000100000000000000";
-constant STAT15 : std_logic_vector(25 downto 0) := "00000000001000000000000000";
-constant STAT16 : std_logic_vector(25 downto 0) := "00000000010000000000000000";
-constant STAT17 : std_logic_vector(25 downto 0) := "00000000100000000000000000";
-constant STAT18 : std_logic_vector(25 downto 0) := "00000001000000000000000000";
-constant STAT19 : std_logic_vector(25 downto 0) := "00000010000000000000000000";
-constant STAT20 : std_logic_vector(25 downto 0) := "00000100000000000000000000";
-constant STAT21 : std_logic_vector(25 downto 0) := "00001000000000000000000000";
-constant STAT22 : std_logic_vector(25 downto 0) := "00010000000000000000000000";
-constant STAT23 : std_logic_vector(25 downto 0) := "00100000000000000000000000";
-constant STAT24 : std_logic_vector(25 downto 0) := "01000000000000000000000000";
-constant STAT25 : std_logic_vector(25 downto 0) := "10000000000000000000000000";
+-- 状態
+constant STAT00 : Stat := "00000000000000000000000001";
+constant STAT01 : Stat := "00000000000000000000000010";
+constant STAT02 : Stat := "00000000000000000000000100";
+constant STAT03 : Stat := "00000000000000000000001000";
+constant STAT04 : Stat := "00000000000000000000010000";
+constant STAT05 : Stat := "00000000000000000000100000";
+constant STAT06 : Stat := "00000000000000000001000000";
+constant STAT07 : Stat := "00000000000000000010000000";
+constant STAT08 : Stat := "00000000000000000100000000";
+constant STAT09 : Stat := "00000000000000001000000000";
+constant STAT10 : Stat := "00000000000000010000000000";
+constant STAT11 : Stat := "00000000000000100000000000";
+constant STAT12 : Stat := "00000000000001000000000000";
+constant STAT13 : Stat := "00000000000010000000000000";
+constant STAT14 : Stat := "00000000000100000000000000";
+constant STAT15 : Stat := "00000000001000000000000000";
+constant STAT16 : Stat := "00000000010000000000000000";
+constant STAT17 : Stat := "00000000100000000000000000";
+constant STAT18 : Stat := "00000001000000000000000000";
+constant STAT19 : Stat := "00000010000000000000000000";
+constant STAT20 : Stat := "00000100000000000000000000";
+constant STAT21 : Stat := "00001000000000000000000000";
+constant STAT22 : Stat := "00010000000000000000000000";
+constant STAT23 : Stat := "00100000000000000000000000";
+constant STAT24 : Stat := "01000000000000000000000000";
+constant STAT25 : Stat := "10000000000000000000000000";
 
-  signal State : std_logic_vector(25 downto 0); -- State
-  signal NxtSt : std_logic_vector(25 downto 0); -- Next State
+signal State : Stat; -- State
+signal NxtSt : Stat; -- Next State
 
-  signal Jmp   : STD_LOGIC;                     -- JMP
-  signal Jz    : STD_LOGIC;                     -- JZ
-  signal Jc    : STD_LOGIC;                     -- JC
-  signal Jm    : STD_LOGIC;                     -- JM
-  signal Jnz   : STD_LOGIC;                     -- JNZ
-  signal Jnc   : STD_LOGIC;                     -- JNC
-  signal Jnm   : STD_LOGIC;                     -- JNM
-  signal JmpCnd: STD_LOGIC;                     -- Jmp Condition
-  signal Immd  : STD_LOGIC;                     -- Immediate mode
-  signal Cmp   : STD_LOGIC;                     -- CMP
-  signal Ld    : STD_LOGIC;                     -- LD
+-- 命令の種類など
+signal Jmp   : STD_LOGIC;                     -- JMP
+signal Jz    : STD_LOGIC;                     -- JZ
+signal Jc    : STD_LOGIC;                     -- JC
+signal Jm    : STD_LOGIC;                     -- JM
+signal Jnz   : STD_LOGIC;                     -- JNZ
+signal Jnc   : STD_LOGIC;                     -- JNC
+signal Jnm   : STD_LOGIC;                     -- JNM
+signal JmpCnd: STD_LOGIC;                     -- Jmp Condition
+signal Immd  : STD_LOGIC;                     -- Immediate mode
+signal Cmp   : STD_LOGIC;                     -- CMP
+signal Ld    : STD_LOGIC;                     -- LD
 
 begin
 -- State machine
   DAddr <= OP & Rd & Rx;
 
-drom0: TEC_DROM
-  port map(Clk   => Clk,
-           Reset => Reset,
-           Addr  => DAddr,
-           Dout  => Dcode);
+  drom0: TEC_DROM
+    port map(Clk   => Clk,
+             Reset => Reset,
+             Addr  => DAddr,
+             Dout  => Dcode);
   
   NxtSt <=  Dcode  when State(1)='1' else
             STAT00 when (State(0)='1' and Stop='1') or   -- Stop
