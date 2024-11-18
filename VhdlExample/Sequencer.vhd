@@ -20,8 +20,8 @@ entity Sequencer is
          FlagC : in  STD_LOGIC;
          FlagS : in  STD_LOGIC;
          FlagZ : in  STD_LOGIC;
-         Stop  : in  STD_LOGIC;
          Intr  : in  STD_LOGIC;
+         Stop  : in  STD_LOGIC;
          -- CPU内部の制御用に出力
          IrLd  : out  STD_LOGIC;
          DrLd  : out  STD_LOGIC;
