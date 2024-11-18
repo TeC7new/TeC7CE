@@ -144,7 +144,7 @@ architecture Behavioral of TeC is
            DbgDin  : in  std_logic_vector (7 downto 0);
            DbgDout : out std_logic_vector (7 downto 0);
            DbgWe   : in  std_logic;
-           Flags   : out std_logic_vector (2 downto 0)    -- CSZ
+           Flag   : out std_logic_vector (2 downto 0)    -- CSZ
          );
   end component;
 
