@@ -164,7 +164,7 @@ begin
   JmpCnd <= Jmp or (Jz and FlagZ) or (Jc and FlagC) or (Jm and FlagS) or 
             (Jnz and not FlagZ) or (Jnc and not FlagC) or (Jnm and not FlagS);
   
-  IrLd  <= State(0);                                         -- Stop
+  IrLd  <= State(0) or State(24);                            -- Stop, Intr
   DrLd  <= State(1) or                                       -- Fetch
            (State(2) and not Immd) or                        -- LD/ADD/.../XOR
            State(6) or State(14);                            -- IN, POP
@@ -202,7 +202,7 @@ begin
            State(14) or State(16) or                         -- POP, RET
            State(17) or State(18) or                         -- RETI
            State(22) or State(23) or State(25);              -- Intr
-  Ir    <= State(6)  or State(8);                            -- OUT, IN
+  Ir    <= State(6)  or State(8) or State(24);               -- OUT, IN, Intr
   Halt  <= State(19) or State(20);                           -- HALT, ERROR
   Err   <= State(20);                                        -- ERROR
 
