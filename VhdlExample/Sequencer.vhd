@@ -135,7 +135,7 @@ architecture Behavioral of Sequencer is
                 Reset => Reset,
                 Addr  => DAddr,
                 Dout  => Dcode);
-  
+
     -- State machine
     NxtSt <=  Dcode  when State(1)='1' else                 -- Inst. Decode
               STAT00 when (State(0)='1' and Stop='1') or    -- Stop
@@ -170,7 +170,7 @@ architecture Behavioral of Sequencer is
         State <= NxtSt;
       end if;
     end process;
-  
+
     -- 命令の種類
     Jmp  <= '1' when Rd="00" else '0';                -- JMP
     Jz   <= '1' when OP(0)='0' and Rd="01" else '0';  -- JZ
@@ -180,9 +180,9 @@ architecture Behavioral of Sequencer is
     Jnc  <= '1' when OP(0)='1' and Rd="10" else '0';  -- JNC
     Jnm  <= '1' when OP(0)='1' and Rd="11" else '0';  -- JNM
     Immd <= '1' when Rx="11" else '0';  -- Immediate mode
- 
-    -- ジャンプ条件 
-    JmpCnd <= Jmp or (Jz and FlagZ) or (Jc and FlagC) or (Jm and FlagS) or 
+
+    -- ジャンプ条件
+    JmpCnd <= Jmp or (Jz and FlagZ) or (Jc and FlagC) or (Jm and FlagS) or
              (Jnz and not FlagZ) or (Jnc and not FlagC) or (Jnm and not FlagS);
 
     -- CPU内のレジスタやマルチプレクサの制御信号

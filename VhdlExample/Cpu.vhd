@@ -112,7 +112,7 @@ architecture Behavioral of Cpu is
   signal OP    : std_logic_vector(3 downto 0);
   signal Rd    : std_logic_vector(1 downto 0);
   signal Rx    : std_logic_vector(1 downto 0);
-  
+
   -- DR
   signal DR    : std_logic_vector(7 downto 0);
 
@@ -127,7 +127,7 @@ architecture Behavioral of Cpu is
   -- 内部制御線（ステートマシンの出力)
   signal IrLd  : std_logic;                    -- IR:Ld
   signal DrLd  : std_logic;                    -- DR:Ld
-  signal FlgLdA: std_logic;                    -- Flag:LdA 
+  signal FlgLdA: std_logic;                    -- Flag:LdA
   signal FlgLdM: std_logic;                    -- Flag:LdM
   signal FlgOn : std_logic;                    -- Flag:On
   signal FlgOff: std_logic;                    -- Flag:Off
@@ -157,17 +157,17 @@ architecture Behavioral of Cpu is
     Addr <= PC when Ma="00" else               -- PC
             Ea when Ma="01" else               -- Effective Address
             SP;                                -- SP
-  
+
     -- Data Bus へ出力
     Dout <= PC when Md="00" else
             (FlgE & "0000" & FlgC & FlgS & FlgZ) when Md="01" else
             RegRd;
-  
+
     -- ALU
     SftRd <= (RegRd & '0') when Rx(1)='0' else                     -- SHLA/SHLL
           (RegRd(0) & RegRd(7) & RegRd(7 downto 1)) when Rx(0)='0' else -- SHRA
           (RegRd(0) & '0' & RegRd(7 downto 1));                      -- SHRL
-  
+
     Alu <= ('0' & RegRd) + ('0' & DR) when OP="0011" else            -- Add
            ('0' & RegRd) - ('0' & DR) when OP(3 downto 1)="010" else --Sub/Cmp
            ('0' & RegRd)and('0' & DR) when OP="0110" else            -- And
@@ -199,7 +199,7 @@ architecture Behavioral of Cpu is
         end if;
       end if;
     end process;
-  
+
     -- PC の制御
     process(Clk, Reset)
     begin
@@ -218,14 +218,14 @@ architecture Behavioral of Cpu is
       end if;
     end process;
 
-    -- CPU レジスタの読み出し  
+    -- CPU レジスタの読み出し
     RegRd <= G0 when Rd="00" else G1 when Rd="01" else
              G2 when Rd="10" else SP;
 
     -- Effective Address の計算
     RegRx <= G1 when Rx="01" else G2 when Rx="10" else "00000000";
     Ea <= DR + RegRx;
-  
+
     -- CPU レジスタの制御
     process(Clk, Reset)
     begin
@@ -290,7 +290,7 @@ architecture Behavioral of Cpu is
         end if;
       end if;
     end process;
-  
+
     -- コンソール接続
     DbgDout <= G0 when DbgAin="000" else
                G1 when DbgAin="001" else
