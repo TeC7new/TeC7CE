@@ -1,8 +1,26 @@
--- Cpu.vhd
--- 情報電子工学総合実験(CE1)用 TeC の CPU 部分 !!! 模範解答 !!!
 --
--- (c)2014 - 2019 by Dept. of Computer Science and Electronic Engineering,
---            Tokuyama College of Technology, JAPAN
+-- TeC7 VHDL Source Code
+--    Tokuyama kousen Educational Computer Ver.7
+--
+-- Copyright (C) 2024 by
+--                      Dept. of Computer Science and Electronic Engineering,
+--                      Tokuyama College of Technology, JAPAN
+--
+--   上記著作権者は，Free Software Foundation によって公開されている GNU 一般公
+-- 衆利用許諾契約書バージョン２に記述されている条件を満たす場合に限り，本ソース
+-- コード(本ソースコードを改変したものを含む．以下同様)を使用・複製・改変・再配
+-- 布することを無償で許諾する．
+--
+--   本ソースコードは＊全くの無保証＊で提供されるものである。上記著作権者および
+-- 関連機関・個人は本ソースコードに関して，その適用可能性も含めて，いかなる保証
+-- も行わない．また，本ソースコードの利用により直接的または間接的に生じたいかな
+-- る損害に関しても，その責任を負わない．
+--
+--
+-- TeC CPU VHDL Source Code
+--
+-- 2024.11.19 : 新バージョン
+--
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -10,99 +28,103 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity Cpu is
-  Port ( Clk     : in  std_logic;
-         -- 制御
-         Reset   : in  std_logic;
-         Intr    : in  std_logic;
-         Stop    : in  std_logic;
-         Halt    : out std_logic;
-         Err     : out std_logic;
-         Ir      : out std_logic;
-         Mr      : out std_logic;
-         Li      : out std_logic;                       -- 命令フェッチ
+  Port ( Clk     : in  std_logic;                       -- Clock
+         -- Control
+         Reset   : in  std_logic;                       -- Reset
+         Intr    : in  std_logic;                       -- Interrupt
+         Stop    : in  std_logic;                       -- Stop
+         Halt    : out std_logic;                       -- Halt Request
+         Err     : out std_logic;                       -- Decode Error
+         Ir      : out std_logic;                       -- I/O Request
+         Mr      : out std_logic;                       -- Memory Request
+         Li      : out std_logic;                       -- Instruction Fetch
+
          -- RAM
-         Addr    : out std_logic_vector (7 downto 0);
-         Din     : in  std_logic_vector (7 downto 0);
-         Dout    : out std_logic_vector (7 downto 0);
+         Addr    : out std_logic_vector (7 downto 0);   -- Addr Bus
+         Din     : in  std_logic_vector (7 downto 0);   -- Data Bus
+         Dout    : out std_logic_vector (7 downto 0);   -- Data Bus
          We      : out std_logic;
+
          -- Console
-         DbgAin  : in  std_logic_vector (2 downto 0);
-         DbgDin  : in  std_logic_vector (7 downto 0);
-         DbgDout : out std_logic_vector (7 downto 0);
-         DbgWe   : in  std_logic;
-         Flag    : out std_logic_vector (2 downto 0)    -- CSZ
-         );
+         DbgAin  : in  std_logic_vector (2 downto 0);   -- Console Rotary Sw
+         DbgDin  : in  std_logic_vector (7 downto 0);   -- Console Data
+         DbgDout : out std_logic_vector (7 downto 0);   -- Register Data
+         DbgWe   : in  std_logic;                       -- Console Write
+         FlagCSZ : out std_logic_vector (2 downto 0)    -- CSZ
+       );
 end Cpu;
 
 architecture Behavioral of Cpu is
   component Sequencer is
-    Port ( Clk   : in  STD_LOGIC;
+    Port ( Clk   : in  std_logic;
+
            -- 入力
-           Reset : in  STD_LOGIC;
-           OP    : in  STD_LOGIC_vector (3 downto 0);
-           Rd    : in  STD_LOGIC_vector (1 downto 0);
-           Rx    : in  STD_LOGIC_vector (1 downto 0);
-           FlagE : in  STD_LOGIC;   -- E
-           FlagC : in  STD_LOGIC;   -- C
-           FlagS : in  STD_LOGIC;   -- S
-           FlagZ : in  STD_LOGIC;   -- Z
-           Intr  : in  STD_LOGIC;
-           Stop  : in  STD_LOGIC;
+           Reset : in  std_logic;
+           OP    : in  std_logic_vector (3 downto 0);
+           Rd    : in  std_logic_vector (1 downto 0);
+           Rx    : in  std_logic_vector (1 downto 0);
+           FlagE : in  std_logic;   -- E
+           FlagC : in  std_logic;   -- C
+           FlagS : in  std_logic;   -- S
+           FlagZ : in  std_logic;   -- Z
+           Intr  : in  std_logic;
+           Stop  : in  std_logic;
+
            -- CPU内部の制御用に出力
-           IrLd  : out  STD_LOGIC;
-           DrLd  : out  STD_LOGIC;
-           FlgLdA: out  STD_LOGIC;
-           FlgLdM: out  STD_LOGIC;
-           FlgOn : out  STD_LOGIC;
-           FlgOff: out  STD_LOGIC;   
-           GrLd  : out  STD_LOGIC;
-           SpM1  : out  STD_LOGIC;
-           SpP1  : out  STD_LOGIC;
-           PcP1  : out  STD_LOGIC;
-           PcJmp : out  STD_LOGIC;
-           PcRet : out  STD_LOGIC;
-           Ma    : out  STD_LOGIC_vector (1 downto 0);
-           Md    : out  STD_LOGIC_vector (1 downto 0);
-           Ir    : out  STD_LOGIC;
-           Mr    : out  STD_LOGIC;
+           IrLd  : out  std_logic;
+           DrLd  : out  std_logic;
+           FlgLdA: out  std_logic;
+           FlgLdM: out  std_logic;
+           FlgOn : out  std_logic;
+           FlgOff: out  std_logic;
+           GrLd  : out  std_logic;
+           SpM1  : out  std_logic;
+           SpP1  : out  std_logic;
+           PcP1  : out  std_logic;
+           PcJmp : out  std_logic;
+           PcRet : out  std_logic;
+           Ma    : out  std_logic_vector (1 downto 0);
+           Md    : out  std_logic_vector (1 downto 0);
+
            -- CPU外部へ出力
-           Err   : out  STD_LOGIC;
-           We    : out  STD_LOGIC;
-           Halt  : out  STD_LOGIC
-           );
+           Ir    : out  std_logic;
+           Mr    : out  std_logic;
+           Err   : out  std_logic;
+           We    : out  std_logic;
+           Halt  : out  std_logic
+         );
   end component;
 
--- CPU Register
+  -- CPU Register
   signal G0    : std_logic_vector(7 downto 0);
   signal G1    : std_logic_vector(7 downto 0);
   signal G2    : std_logic_vector(7 downto 0);
   signal SP    : std_logic_vector(7 downto 0);
 
--- PSW
+  -- PSW
   signal PC   : std_logic_vector(7 downto 0);
   signal FlgE : std_logic;            -- E
   signal FlgC : std_logic;            -- C
   signal FlgS : std_logic;            -- S
   signal FlgZ : std_logic;            -- Z
 
--- IR
+  -- IR
   signal OP    : std_logic_vector(3 downto 0);
   signal Rd    : std_logic_vector(1 downto 0);
   signal Rx    : std_logic_vector(1 downto 0);
   
--- DR
+  -- DR
   signal DR    : std_logic_vector(7 downto 0);
 
--- 内部バス
-  signal EA    : std_logic_vector(7 downto 0); -- Effective Address
+  -- 内部バス
+  signal Ea    : std_logic_vector(7 downto 0); -- Effective Address
   signal RegRd : std_logic_vector(7 downto 0); -- Reg[Rd]
   signal RegRx : std_logic_vector(7 downto 0); -- Reg[Rx]
   signal Alu   : std_logic_vector(8 downto 0); -- ALU出力（キャリー付)
   signal Zero  : std_logic;                    -- ALUが0か？
-  signal SftRd : std_logic_vector(8 downto 0); -- RegRdをシフトしたもの
-  signal Flags : std_logic_vector(7 downto 0); -- FLAGをまとめたもの
+  signal SftRd : std_logic_vector(8 downto 0); -- Reg[Rd]をシフトしたもの
 
--- 内部制御線（ステートマシンの出力)
+  -- 内部制御線（ステートマシンの出力)
   signal IrLd  : std_logic;                    -- IR:Ld
   signal DrLd  : std_logic;                    -- DR:Ld
   signal FlgLdA: std_logic;                    -- Flag:LdA 
@@ -116,161 +138,166 @@ architecture Behavioral of Cpu is
   signal PcJmp : std_logic;                    -- PC:JMP
   signal PcRet : std_logic;                    -- PC:RET
 
-  signal Ma    : std_logic_vector(1 downto 0); -- MA(PC=00,EA=01,SP=10)
+  -- マルチプレクッサの制御
+  signal Ma    : std_logic_vector(1 downto 0); -- MA(PC=00,Ea=01,SP=10)
   signal Md    : std_logic_vector(1 downto 0); -- MD(PC=0,FLAG=,GR=1)
 
-  signal Io    : std_logic;                    --IO
-
-begin
--- コンソールへの接続
-  Flag  <= FlgC & FlgS & FlgZ;
-  Li    <= IrLd;
-
--- 制御部
-  seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlgE, FlgC, FlgS, FlgZ, Intr,
-                            Stop, IrLd, DrLd, FlgLdA, FlgLdM, FlgOn, FlgOff, GrLd, SpM1, SpP1,
-                            PcP1, PcJmp, PcRet, Ma, Md, Ir, Mr, Err, We, Halt);
-
--- BUS
-  Addr <= PC when Ma="00" else
-          EA when Ma="01" else SP;
-  
-  Ea <= DR + RegRx;
-
-  Dout <= PC when Md="00" else
-          (FlgE & "0000" & FlgC & FlgS & FlgZ) when Md="01" else RegRd;
-  
--- ALU
-  SftRd <= (RegRd & '0') when Rx(1)='0' else                      -- SHLA/SHLL
-    (RegRd(0) & RegRd(7) & RegRd(7 downto 1)) when Rx(0)='0' else -- SHRA
-    (RegRd(0) & '0' & RegRd(7 downto 1));                         -- SHRL
-  
-  Alu <= ('0' & RegRd) + ('0' & DR) when OP="0011" else           -- Add
-         ('0' & RegRd) - ('0' & DR) when OP="0100" or OP="0101" else --Sub/Cmp
-         ('0' & RegRd)and('0' & DR) when OP="0110" else           -- And
-         ('0' & RegRd)or ('0' & DR) when OP="0111" else           -- Or
-         ('0' & RegRd)xor('0' & DR) when OP="1000" else           -- Xor
-         SftRd when OP="1001" else ('0' & DR);                    -- Shift
-
-  Zero <= '1' when ALU(7 downto 0)="00000000" else '0';
-
--- IR の制御
-  process(Clk)
   begin
-    if (Clk'event and Clk='1') then
-      if (IrLd='1') then
-        OP <= Din(7 downto 4);
-        Rd <= Din(3 downto 2);
-        Rx <= Din(1 downto 0);
-      end if;
-    end if;
-  end process;
+    -- コンソールへの接続
+    FlagCSZ <= FlgC & FlgS & FlgZ;
+    Li <= IrLd;
 
-  -- DR の制御
-  process(Clk)
-  begin
-    if (Clk'event and Clk='1') then
-      if (DrLd='1') then
-          DR <= Din;
-      end if;
-    end if;
-  end process;
-  
--- PC の制御
-  process(Clk, Reset)
-  begin
-    if (Reset='1') then
-      PC <= "00000000";
-    elsif (Clk'event and Clk='1') then
-      if (PcJmp='1') then
-        PC <= Ea;
-      elsif (PcRet='1') then
-        PC <= Din;
-      elsif (PcP1='1') then
-        PC <= PC + 1;
-      elsif (DbgWe='1' and DbgAin="100") then                 --コンソールからの書き込み
-        PC <= DbgDin;
-      end if;
-    end if;
-  end process;
-  
--- CPU レジスタの制御
-  RegRd <= G0 when Rd="00" else G1 when Rd="01" else
-           G2 when Rd="10" else SP;
+    -- 制御部
+    seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlgE, FlgC, FlgS, FlgZ,
+                              Intr, Stop, IrLd, DrLd, FlgLdA, FlgLdM, FlgOn,
+                              FlgOff, GrLd, SpM1, SpP1, PcP1, PcJmp, PcRet,
+                              Ma, Md, Ir, Mr, Err, We, Halt);
 
-  RegRx <= G1 when Rx="01" else G2 when Rx="10" else "00000000";
+    -- Address Bus へ出力
+    Addr <= PC when Ma="00" else               -- PC
+            Ea when Ma="01" else               -- Effective Address
+            SP;                                -- SP
   
-  process(Clk, Reset)
-  begin
-    if (Reset='1') then
-      G0  <= "00000000";
-      G1  <= "00000000";
-      G2  <= "00000000";
-      SP  <= "00000000";
-    elsif (Clk'event and Clk='1') then
-      if (GrLd='1') then
-        case Rd is
-          when "00" => G0 <= Alu(7 downto 0);
-          when "01" => G1 <= Alu(7 downto 0);
-          when "10" => G2 <= Alu(7 downto 0);
-          when others => SP <= Alu(7 downto 0);
-        end case;
-      elsif (SpP1='1') then
-        SP <= SP + 1;
-      elsif (SpM1='1') then
-        SP <= Sp - 1;
-      elsif (DbgWe='1') then                                  --コンソールからの書き込み
-        case DbgAin is
-          when "000" => G0 <= DbgDin;
-          when "001" => G1 <= DbgDin;
-          when "010" => G2 <= DbgDin;
-          when "011" => SP <= DbgDin;
-          when others => null;
-        end case;
-      end if;
-    end if;
-  end process;
+    -- Data Bus へ出力
+    Dout <= PC when Md="00" else
+            (FlgE & "0000" & FlgC & FlgS & FlgZ) when Md="01" else
+            RegRd;
+  
+    -- ALU
+    SftRd <= (RegRd & '0') when Rx(1)='0' else                     -- SHLA/SHLL
+          (RegRd(0) & RegRd(7) & RegRd(7 downto 1)) when Rx(0)='0' else -- SHRA
+          (RegRd(0) & '0' & RegRd(7 downto 1));                      -- SHRL
+  
+    Alu <= ('0' & RegRd) + ('0' & DR) when OP="0011" else            -- Add
+           ('0' & RegRd) - ('0' & DR) when OP(3 downto 1)="010" else --Sub/Cmp
+           ('0' & RegRd)and('0' & DR) when OP="0110" else            -- And
+           ('0' & RegRd)or ('0' & DR) when OP="0111" else            -- Or
+           ('0' & RegRd)xor('0' & DR) when OP="1000" else            -- Xor
+           SftRd when OP="1001" else                                 -- Shift
+           ('0' & DR);                                               -- DR
 
--- フラグの制御
-  process(Clk, Reset)
-  begin
-    if (Reset='1') then
-      FlgE <= '0';
-      FlgC <= '0';
-      FlgS <= '0';
-      FlgZ <= '0';
-    elsif (Clk'event and Clk='1') then
-      if (FlgLdA='1') then
-        FlgC <= Alu(8);                -- Carry
-        FlgS <= Alu(7);                -- Sign
-        FlgZ <= Zero;                  -- Zero
-      elsif (FlgLdM='1') then
-        FlgE <= Din(7);                -- Enable
-        FlgC <= Din(2);                -- Carry
-        FlgS <= Din(1);                -- Sign
-        FlgZ <= Din(0);                -- Zero
-      elsif (FlgOn='1') then
-        FlgE <= '1';                   -- Enable
-      elsif (FlgOff='1') then
-        FlgE <= '0';                   -- Enable
-      elsif (DbgWe='1') then           -- Console
-        if (DbgAin="110") then         --  Flag
-          FlgE <= DbgDin(7);           --   Enable
-          FlgC <= DbgDin(2);           --   Carry
-          FlgS <= DbgDin(1);           --   Sign
-          FlgZ <= DbgDin(0);           --   Zero
+    Zero <= '1' when ALU(7 downto 0)="00000000" else '0';
+
+    -- IR の制御
+    process(Clk)
+    begin
+      if (Clk'event and Clk='1') then
+        if (IrLd='1') then
+          OP <= Din(7 downto 4);
+          Rd <= Din(3 downto 2);
+          Rx <= Din(1 downto 0);
         end if;
       end if;
-    end if;
-  end process;
+    end process;
+
+    -- DR の制御
+    process(Clk)
+    begin
+      if (Clk'event and Clk='1') then
+        if (DrLd='1') then
+          DR <= Din;
+        end if;
+      end if;
+    end process;
   
--- デバッグ用のコンソール接続
-  DbgDout <= G0 when DbgAin="000" else
-             G1 when DbgAin="001" else
-             G2 when DbgAin="010" else
-             SP when DbgAin="011" else
-             PC when DbgAin="100" else
-             (FlgE & "0000" & FlgC & FlgS & FlgZ);
+    -- PC の制御
+    process(Clk, Reset)
+    begin
+      if (Reset='1') then
+        PC <= "00000000";
+      elsif (Clk'event and Clk='1') then
+        if (PcJmp='1') then
+          PC <= Ea;
+        elsif (PcRet='1') then
+          PC <= Din;
+        elsif (PcP1='1') then
+          PC <= PC + 1;
+        elsif (DbgWe='1' and DbgAin="100") then   -- Console からの書き込み
+          PC <= DbgDin;
+        end if;
+      end if;
+    end process;
+
+    -- CPU レジスタの読み出し  
+    RegRd <= G0 when Rd="00" else G1 when Rd="01" else
+             G2 when Rd="10" else SP;
+
+    -- Effective Address の計算
+    RegRx <= G1 when Rx="01" else G2 when Rx="10" else "00000000";
+    Ea <= DR + RegRx;
+  
+    -- CPU レジスタの制御
+    process(Clk, Reset)
+    begin
+      if (Reset='1') then
+        G0  <= "00000000";
+        G1  <= "00000000";
+        G2  <= "00000000";
+        SP  <= "00000000";
+      elsif (Clk'event and Clk='1') then
+        if (GrLd='1') then
+          case Rd is
+            when "00"   => G0 <= Alu(7 downto 0);
+            when "01"   => G1 <= Alu(7 downto 0);
+            when "10"   => G2 <= Alu(7 downto 0);
+            when others => SP <= Alu(7 downto 0);
+          end case;
+        elsif (SpP1='1') then
+          SP <= SP + 1;
+        elsif (SpM1='1') then
+          SP <= Sp - 1;
+        elsif (DbgWe='1') then                    -- Console からの書き込み
+          case DbgAin is
+            when "000" => G0 <= DbgDin;
+            when "001" => G1 <= DbgDin;
+            when "010" => G2 <= DbgDin;
+            when "011" => SP <= DbgDin;
+            when others => null;
+          end case;
+        end if;
+      end if;
+    end process;
+
+    -- フラグの制御
+    process(Clk, Reset)
+    begin
+      if (Reset='1') then
+        FlgE <= '0';
+        FlgC <= '0';
+        FlgS <= '0';
+        FlgZ <= '0';
+      elsif (Clk'event and Clk='1') then
+        if (FlgLdA='1') then
+          FlgC <= Alu(8);                -- Carry
+          FlgS <= Alu(7);                -- Sign
+          FlgZ <= Zero;                  -- Zero
+        elsif (FlgLdM='1') then
+          FlgE <= Din(7);                -- Enable
+          FlgC <= Din(2);                -- Carry
+          FlgS <= Din(1);                -- Sign
+          FlgZ <= Din(0);                -- Zero
+        elsif (FlgOn='1') then
+          FlgE <= '1';                   -- Enable
+        elsif (FlgOff='1') then
+          FlgE <= '0';                   -- Disable
+        elsif (DbgWe='1') then           -- Console からの書き込み
+          if (DbgAin="110") then         --  Flag
+            FlgE <= DbgDin(7);           --   Enable
+            FlgC <= DbgDin(2);           --   Carry
+            FlgS <= DbgDin(1);           --   Sign
+            FlgZ <= DbgDin(0);           --   Zero
+          end if;
+        end if;
+      end if;
+    end process;
+  
+    -- コンソール接続
+    DbgDout <= G0 when DbgAin="000" else
+               G1 when DbgAin="001" else
+               G2 when DbgAin="010" else
+               SP when DbgAin="011" else
+               PC when DbgAin="100" else
+               (FlgE & "0000" & FlgC & FlgS & FlgZ);
 
 end Behavioral;
 
