@@ -19,6 +19,9 @@
 --
 -- TeC decode ROM
 --
+-- 2024.11.19 : 新バージョン
+--
+
 library IEEE;
 use std.textio.all;
 use ieee.std_logic_1164.all;
@@ -50,13 +53,14 @@ architecture BEHAVE of TEC_DROM is
     end function;
   signal mem : memory := read_file("drom.txt"); --memの初期化
 
-begin
-  process(Clk, Reset)
   begin
-    if (Reset='1') then
-      Dout <= (others => '0');
-    elsif (Clk'event and Clk='0') then
-      Dout <= mem( conv_integer(Addr) );
-    end if;
-  end process;
+    process(Clk, Reset)
+    begin
+      if (Reset='1') then
+        Dout <= (others => '0');
+      elsif (Clk'event and Clk='0') then
+        Dout <= mem( conv_integer(Addr) );
+      end if;
+    end process;
+
 end BEHAVE;
