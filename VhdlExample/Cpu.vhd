@@ -27,23 +27,23 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity Cpu is
-  Port ( Clk     : in  std_logic;                       -- Clock
+entity TEC_CPU is
+  Port ( P_CLK     : in  std_logic;                     -- Clock
          -- Control
-         Reset   : in  std_logic;                       -- Reset
-         Intr    : in  std_logic;                       -- Interrupt
-         Stop    : in  std_logic;                       -- Stop
-         Halt    : out std_logic;                       -- Halt Request
-         Err     : out std_logic;                       -- Decode Error
-         Ir      : out std_logic;                       -- I/O Request
-         Mr      : out std_logic;                       -- Memory Request
-         Li      : out std_logic;                       -- Instruction Fetch
+         P_RESET   : in  std_logic;                     -- Reset
+         P_INTR    : in  std_logic;                     -- Interrupt
+         P_STOP    : in  std_logic;                     -- Stop
+         P_HL    : out std_logic;                       -- Halt Request
+         P_ER     : out std_logic;                      -- Decode Error
+         P_IR      : out std_logic;                     -- I/O Request
+         P_MR      : out std_logic;                     -- Memory Request
+         P_LI      : out std_logic;                     -- Instruction Fetch
 
          -- RAM
-         Addr    : out std_logic_vector (7 downto 0);   -- Addr Bus
-         Din     : in  std_logic_vector (7 downto 0);   -- Data Bus
-         Dout    : out std_logic_vector (7 downto 0);   -- Data Bus
-         We      : out std_logic;
+         P_ADDR    : out std_logic_vector (7 downto 0);   -- Addr Bus
+         P_DIN     : in  std_logic_vector (7 downto 0);   -- Data Bus
+         P_DOUT    : out std_logic_vector (7 downto 0);   -- Data Bus
+         P_WE      : out std_logic;
 
          -- Console
          DbgAin  : in  std_logic_vector (2 downto 0);   -- Console Rotary Sw
@@ -51,6 +51,14 @@ entity Cpu is
          DbgDout : out std_logic_vector (7 downto 0);   -- Register Data
          DbgWe   : in  std_logic;                       -- Console Write
          FlagCSZ : out std_logic_vector (2 downto 0)    -- CSZ
+
+         P_G0D   : out std_logic_vector(7 downto 0);     -- G0 out
+         P_G1D   : out std_logic_vector(7 downto 0);     -- G1 out
+         P_G2D   : out std_logic_vector(7 downto 0);     -- G2 out
+         P_SPD   : out std_logic_vector(7 downto 0);     -- SP out
+         P_PCD   : out std_logic_vector(7 downto 0);     -- PC out
+
+         P_MODE  : in  std_logic                         -- DEMO MODE
        );
 end Cpu;
 
@@ -89,9 +97,9 @@ architecture Behavioral of Cpu is
            -- CPU外部へ出力
            Ir    : out  std_logic;
            Mr    : out  std_logic;
-           Err   : out  std_logic;
+           Er   : out  std_logic;
            We    : out  std_logic;
-           Halt  : out  std_logic
+           Hl  : out  std_logic
          );
   end component;
 
@@ -145,21 +153,21 @@ architecture Behavioral of Cpu is
   begin
     -- コンソールへの接続
     FlagCSZ <= FlgC & FlgS & FlgZ;
-    Li <= IrLd;
+    P_LI <= IrLd;
 
     -- 制御部
     seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlgE, FlgC, FlgS, FlgZ,
                               Intr, Stop, IrLd, DrLd, FlgLdA, FlgLdM, FlgOn,
                               FlgOff, GrLd, SpM1, SpP1, PcP1, PcJmp, PcRet,
-                              Ma, Md, Ir, Mr, Err, We, Halt);
+                              Ma, Md, Ir, Mr, Er, We, Hl);
 
     -- Address Bus へ出力
-    Addr <= PC when Ma="00" else               -- PC
+    P_ADDR <= PC when Ma="00" else               -- PC
             Ea when Ma="01" else               -- Effective Address
             SP;                                -- SP
 
     -- Data Bus へ出力
-    Dout <= PC when Md="00" else
+    P_DOUT <= PC when Md="00" else
             (FlgE & "0000" & FlgC & FlgS & FlgZ) when Md="01" else
             RegRd;
 
@@ -179,37 +187,37 @@ architecture Behavioral of Cpu is
     Zero <= '1' when ALU(7 downto 0)="00000000" else '0';
 
     -- IR の制御
-    process(Clk)
+    process(P_CLK)
     begin
-      if (Clk'event and Clk='1') then
+      if (P_CLK'event and P_CLK='1') then
         if (IrLd='1') then
-          OP <= Din(7 downto 4);
-          Rd <= Din(3 downto 2);
-          Rx <= Din(1 downto 0);
+          OP <=P_DIN(7 downto 4);
+          Rd <=P_DIN(3 downto 2);
+          Rx <=P_DIN(1 downto 0);
         end if;
       end if;
     end process;
 
     -- DR の制御
-    process(Clk)
+    process(P_CLK)
     begin
-      if (Clk'event and Clk='1') then
+      if (P_CLK'event and P_CLK='1') then
         if (DrLd='1') then
-          DR <= Din;
+          DR <=P_DIN;
         end if;
       end if;
     end process;
 
     -- PC の制御
-    process(Clk, Reset)
+    process(P_CLK,P_RESET)
     begin
       if (Reset='1') then
         PC <= "00000000";
-      elsif (Clk'event and Clk='1') then
+      elsif (P_CLK'event and P_CLK='1') then
         if (PcJmp='1') then
           PC <= Ea;
         elsif (PcRet='1') then
-          PC <= Din;
+          PC <=P_DIN;
         elsif (PcP1='1') then
           PC <= PC + 1;
         elsif (DbgWe='1' and DbgAin="100") then   -- Console からの書き込み
@@ -227,14 +235,14 @@ architecture Behavioral of Cpu is
     Ea <= DR + RegRx;
 
     -- CPU レジスタの制御
-    process(Clk, Reset)
+    process(P_CLK,P_RESET)
     begin
-      if (Reset='1') then
+      if (P_Reset='1') then
         G0  <= "00000000";
         G1  <= "00000000";
         G2  <= "00000000";
         SP  <= "00000000";
-      elsif (Clk'event and Clk='1') then
+      elsif (P_CLK'event and P_CLK='1') then
         if (GrLd='1') then
           case Rd is
             when "00"   => G0 <= Alu(7 downto 0);
@@ -259,23 +267,23 @@ architecture Behavioral of Cpu is
     end process;
 
     -- フラグの制御
-    process(Clk, Reset)
+    process(P_CLK,P_RESET)
     begin
-      if (Reset='1') then
+      if (P_Reset='1') then
         FlgE <= '0';
         FlgC <= '0';
         FlgS <= '0';
         FlgZ <= '0';
-      elsif (Clk'event and Clk='1') then
+      elsif (P_CLK'event and P_CLK='1') then
         if (FlgLdA='1') then
           FlgC <= Alu(8);                -- Carry
           FlgS <= Alu(7);                -- Sign
           FlgZ <= Zero;                  -- Zero
         elsif (FlgLdM='1') then
-          FlgE <= Din(7);                -- Enable
-          FlgC <= Din(2);                -- Carry
-          FlgS <= Din(1);                -- Sign
-          FlgZ <= Din(0);                -- Zero
+          FlgE <=P_DIN(7);                -- Enable
+          FlgC <=P_DIN(2);                -- Carry
+          FlgS <=P_DIN(1);                -- Sign
+          FlgZ <=P_DIN(0);                -- Zero
         elsif (FlgOn='1') then
           FlgE <= '1';                   -- Enable
         elsif (FlgOff='1') then
