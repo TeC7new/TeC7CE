@@ -60,9 +60,9 @@ entity TEC_CPU is
 
          P_MODE  : in  std_logic                         -- DEMO MODE
        );
-end Cpu;
+end TEC_CPU;
 
-architecture Behavioral of Cpu is
+architecture Behavioral of TEC_CPU is
   component Sequencer is
     Port ( Clk   : in  std_logic;
 
