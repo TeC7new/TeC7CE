@@ -142,10 +142,10 @@ architecture Behavioral of Sequencer is
                           State(3)='1' or State(4)='1' or   -- LD/.../SHxx,ST
                           State(5)='1' or State(7)='1' or   -- JMP,IN
                           State(8)='1' or State(10)='1' or  -- OUT,CALL
-                          State(11)='1' or State(13)='1' or -- EI/DI,PUSH
-                          State(15)='1' or State(16)='1' or -- POP,RET
-                          State(18)='1' or State(19)='1' or -- RETI,HALT
-                          State(20)='1' or                  -- ERROR
+                          State(11)='1' or State(12)='1' or -- EI, DI
+                          State(13)='1' or State(15)='1' or -- PUSH, POP
+                          State(16)='1' or State(18)='1' or -- RET, RETI
+                          State(19)='1' or State(20)='1' or -- HALT, ERROR
                           State(25)='1' else                -- Intr
               STAT21 when State(0)='1' and
                            Intr='1' and FlagE='1' else      -- Intr
@@ -192,13 +192,13 @@ architecture Behavioral of Sequencer is
              State(6) or State(14);                            -- IN, POP
     FlgLdA <= '1' when State(3)='1' and OP/="0001" else '0';   -- OP /=LD
     FlgLdM <= State(17);                                       -- RETI
-    FlgOn  <= State(11) and not Rx(0);                         -- EI
-    FlgOff <= (State(11) and Rx(0)) or State(22);              -- DI, Intr
+    FlgOn  <= State(11);                                       -- EI
+    FlgOff <= State(12) or State(22);                          -- DI, Intr
     GrLd  <= '1' when (State(3)='1' and OP/="0101") or         -- OP /=CMP
                       State(7)='1' or                          -- IN
                       State(15)='1' else '0';                  -- POP
     SpP1  <= State(14) or State(16) or State(17) or State(18); -- POP, RET, RETI
-    SpM1  <= State(9)  or State(12) or                         -- CALL, PUSH
+    SpM1  <= State(9)  or State(13) or                         -- CALL, PUSH
              State(21) or State(23);                           -- Intr
     PcP1  <= (State(0) and not Stop) or                        -- Stop
              State(2) or                                       -- LD/ADD/.../XOR
@@ -211,7 +211,8 @@ architecture Behavioral of Sequencer is
                        State(25)='1' else                      -- Fetch, Intr
              "01" when State(2)='1' or State(4)='1' or         -- "01"=EA, LD..
                        State(6)='1' or State(8)='1' else       -- ST, OUT, IN
-             "10";                                             -- "10"=SP
+             "10" when State(13)='1' else                      -- "10"=SP-1,PUSH
+             "11";                                             -- "11"=SP
     Md    <= "00" when State(10)='1' or State(22)='1' else     -- "00"=PC
              "01" when State(23)='1' else                      -- "01"=FLAG
              "10";                                             -- "10"=GR

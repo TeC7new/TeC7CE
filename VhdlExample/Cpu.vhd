@@ -163,8 +163,9 @@ architecture Behavioral of Cpu is
 
     -- Address Bus へ出力
     P_ADDR <= PC when Ma="00" else               -- PC
-            Ea when Ma="01" else               -- Effective Address
-            SP;                                -- SP
+              Ea when Ma="01" else               -- Effective Address
+              SP-1 when Ma="10" else             -- SP-1
+              SP;                                -- SP
 
     -- Data Bus へ出力
     P_DOUT <= PC when Md="00" else
