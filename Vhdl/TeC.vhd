@@ -124,21 +124,21 @@ architecture Behavioral of TeC is
   end component;
 
   component Cpu
-    Port ( Clk     : in  std_logic;
+    Port ( P_CLK   : in  std_logic;
            -- 制御
-           Reset   : in  std_logic;
-           Intr    : in  std_logic;
-           Stop    : in  std_logic;
-           Halt    : out std_logic;
-           Err     : out std_logic;
-           Ir      : out std_logic;
-           Mr      : out std_logic;
-           Li      : out std_logic;                       -- 命令フェッチ
+           P_RESET : in  std_logic;
+           P_INTR  : in  std_logic;
+           P_STOP  : in  std_logic;
+           P_HL    : out std_logic;
+           P_ER    : out std_logic;
+           P_IR    : out std_logic;
+           P_MR    : out std_logic;
+           P_LI    : out std_logic;                       -- 命令フェッチ
            -- RAM
-           Addr    : out std_logic_vector (7 downto 0);
-           Din     : in  std_logic_vector (7 downto 0);
-           Dout    : out std_logic_vector (7 downto 0);
-           We      : out std_logic;
+           P_ADDR  : out std_logic_vector (7 downto 0);
+           P_DIN   : in  std_logic_vector (7 downto 0);
+           P_DOUT  : out std_logic_vector (7 downto 0);
+           P_WE    : out std_logic;
            -- Console
            DbgAin  : in  std_logic_vector (2 downto 0);
            DbgDin  : in  std_logic_vector (7 downto 0);
@@ -215,21 +215,21 @@ begin
   
   Cpu1 : Cpu
     port map (
-      Clk     => Clk,
+      P_CLK     => Clk,
       -- 制御
-      Reset   => Reset,
-      Stop    => Stop,
-      Halt    => Halt,
-      Intr    => '0',
-      Err     => Err,
-      Mr      => Mr,
-      Ir      => Ir,
-      Li      => Li,
+      P_RESET   => Reset,
+      P_STOP    => Stop,
+      P_HL    => Halt,
+      P_INTR    => '0',
+      P_ER     => Err,
+      P_MR      => Mr,
+      P_IR      => Ir,
+      P_LI      => Li,
       FlagCSZ => Flags,
       -- RAM
-      Addr    => Addr,
-      Din     => DataIn,
-      Dout    => DataOut,
+      P_ADDR    => Addr,
+      P_DIN     => DataIn,
+      P_DOUT    => DataOut,
       We      => WeMem,
       -- Console
       DbgAin  => DbgAddr(2 downto 0),

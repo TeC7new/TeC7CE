@@ -27,7 +27,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity TEC_CPU is
+entity Cpu is
   Port ( P_CLK     : in  std_logic;                     -- Clock
          -- Control
          P_RESET   : in  std_logic;                     -- Reset
@@ -60,9 +60,9 @@ entity TEC_CPU is
 
          P_MODE  : in  std_logic                         -- DEMO MODE
        );
-end TEC_CPU;
+end Cpu;
 
-architecture Behavioral of TEC_CPU is
+architecture Behavioral of Cpu is
   component Sequencer is
     Port ( Clk   : in  std_logic;
 
@@ -97,9 +97,9 @@ architecture Behavioral of TEC_CPU is
            -- CPU外部へ出力
            Ir    : out  std_logic;
            Mr    : out  std_logic;
-           Er   : out  std_logic;
+           Err   : out  std_logic;
            We    : out  std_logic;
-           Hl  : out  std_logic
+           Halt  : out  std_logic
          );
   end component;
 
@@ -156,10 +156,10 @@ architecture Behavioral of TEC_CPU is
     P_LI <= IrLd;
 
     -- 制御部
-    seq1: Sequencer Port map (Clk, Reset, OP, Rd, Rx, FlgE, FlgC, FlgS, FlgZ,
-                              Intr, Stop, IrLd, DrLd, FlgLdA, FlgLdM, FlgOn,
+    seq1: Sequencer Port map (P_CLK, P_RESET, OP, Rd, Rx, FlgE, FlgC, FlgS, FlgZ,
+                              P_INTR, P_STOP, IrLd, DrLd, FlgLdA, FlgLdM, FlgOn,
                               FlgOff, GrLd, SpM1, SpP1, PcP1, PcJmp, PcRet,
-                              Ma, Md, Ir, Mr, Er, We, Hl);
+                              Ma, Md, P_IR, P_MR, P_ER, P_WE, P_HL);
 
     -- Address Bus へ出力
     P_ADDR <= PC when Ma="00" else               -- PC
@@ -211,7 +211,7 @@ architecture Behavioral of TEC_CPU is
     -- PC の制御
     process(P_CLK,P_RESET)
     begin
-      if (Reset='1') then
+      if (P_RESET='1') then
         PC <= "00000000";
       elsif (P_CLK'event and P_CLK='1') then
         if (PcJmp='1') then
@@ -237,7 +237,7 @@ architecture Behavioral of TEC_CPU is
     -- CPU レジスタの制御
     process(P_CLK,P_RESET)
     begin
-      if (P_Reset='1') then
+      if (P_RESET='1') then
         G0  <= "00000000";
         G1  <= "00000000";
         G2  <= "00000000";
@@ -269,7 +269,7 @@ architecture Behavioral of TEC_CPU is
     -- フラグの制御
     process(P_CLK,P_RESET)
     begin
-      if (P_Reset='1') then
+      if (P_RESET='1') then
         FlgE <= '0';
         FlgC <= '0';
         FlgS <= '0';
